@@ -15,12 +15,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 )
 
 func init() {
-	log.SetLevel("debug")
+	logger.SetLevelByString("debug")
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 

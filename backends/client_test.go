@@ -17,7 +17,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 	"openpitrix.io/metad/util/flatmap"
 )
@@ -30,7 +30,7 @@ var (
 )
 
 func init() {
-	log.SetLevel("debug")
+	logger.SetLevelByString("debug")
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 
@@ -560,7 +560,7 @@ func FillTestData(storeClient StoreClient) map[string]string {
 	}
 	err := storeClient.Put("/", testData, true)
 	if err != nil {
-		log.Error("SetValues error", err.Error())
+		logger.Error("SetValues error", err.Error())
 	}
 	return flatmap.Flatten(testData)
 }

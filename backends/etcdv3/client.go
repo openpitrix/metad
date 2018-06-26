@@ -23,7 +23,7 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"golang.org/x/net/context"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 	"openpitrix.io/metad/util"
 	"openpitrix.io/metad/util/flatmap"
@@ -136,7 +136,7 @@ func (c *Client) GetMapping(nodePath string, dir bool) (interface{}, error) {
 }
 
 func (c *Client) PutMapping(nodePath string, mapping interface{}, replace bool) error {
-	log.Debug("UpdateMapping nodePath:%s, mapping:%v, replace:%v", nodePath, mapping, replace)
+	logger.Debug("UpdateMapping nodePath:%s, mapping:%v, replace:%v", nodePath, mapping, replace)
 	return c.internalPut(c.mappingPrefix, nodePath, mapping, replace)
 }
 
@@ -161,7 +161,7 @@ func (c *Client) GetAccessRule() (map[string][]store.AccessRule, error) {
 	for k, v := range m {
 		rules, err := store.UnmarshalAccessRule(v)
 		if err != nil {
-			log.Error("Unexpect rule json value in etcd [%s]", v)
+			logger.Error("Unexpect rule json value in etcd [%s]", v)
 			continue
 		}
 		_, host := path.Split(k)
@@ -207,13 +207,13 @@ func (c *Client) SyncAccessRule(accessStore store.AccessStore, stopChan chan boo
 		case mvccpb.PUT:
 			rules, err := store.UnmarshalAccessRule(value)
 			if err != nil {
-				log.Error("Unexpect rule json value in etcd [%s]", value)
+				logger.Error("Unexpect rule json value in etcd [%s]", value)
 			}
 			accessStore.Put(host, rules)
 		case mvccpb.DELETE:
 			accessStore.Delete(host)
 		default:
-			log.Warning("Unknow watch event type: %s ", event.Type)
+			logger.Warn("Unknow watch event type: %s ", event.Type)
 		}
 	})
 	initWG.Wait()
@@ -230,7 +230,7 @@ func (c *Client) internalGets(prefix, nodePath string) (map[string]string, error
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("GetValues prefix:%s, nodePath:%s, resp:%v", prefix, nodePath, vars)
+	logger.Debug("GetValues prefix:%s, nodePath:%s, resp:%v", prefix, nodePath, vars)
 	return vars, nil
 }
 
@@ -277,7 +277,7 @@ func (c *Client) internalSync(prefix string, stopChan chan bool, initWG *sync.Wa
 	go func() {
 		select {
 		case <-stopChan:
-			log.Info("Sync %s stop.", prefix)
+			logger.Info("Sync %s stop.", prefix)
 			stop = true
 			if cancel != nil {
 				cancel()
@@ -306,12 +306,12 @@ func (c *Client) internalSync(prefix string, stopChan chan bool, initWG *sync.Wa
 			}
 			err := initStoreFunc()
 			if err != nil {
-				log.Error("Get init value from etcd nodePath:%s, error-type: %s, error: %s", prefix, reflect.TypeOf(err), err.Error())
+				logger.Error("Get init value from etcd nodePath:%s, error-type: %s, error: %s", prefix, reflect.TypeOf(err), err.Error())
 				time.Sleep(time.Duration(1000) * time.Millisecond)
-				log.Info("Init store for prefix %s fail, retry.", prefix)
+				logger.Info("Init store for prefix %s fail, retry.", prefix)
 				continue
 			}
-			log.Info("Init store for prefix %s success.", prefix)
+			logger.Info("Init store for prefix %s success.", prefix)
 			init = true
 			initWG.Done()
 		}
@@ -325,7 +325,7 @@ func (c *Client) internalSync(prefix string, stopChan chan bool, initWG *sync.Wa
 
 				nodePath = util.TrimPathPrefix(nodePath, prefix)
 				value := string(event.Kv.Value)
-				log.Debug("process sync change, event_type: %s, prefix: %v, nodePath:%v, value: %v ", event.Type, prefix, nodePath, value)
+				logger.Debug("process sync change, event_type: %s, prefix: %v, nodePath:%v, value: %v ", event.Type, prefix, nodePath, value)
 				processChangeFunc(event, nodePath, value)
 			}
 			rev = resp.Header.Revision
@@ -352,7 +352,7 @@ func newProcessSyncChangeFunc(store store.Store) func(event *client.Event, nodeP
 		case mvccpb.DELETE:
 			store.Delete(nodePath)
 		default:
-			log.Warning("Unknow watch event type: %s ", event.Type)
+			logger.Warn("Unknow watch event type: %s ", event.Type)
 			store.Put(nodePath, value)
 
 		}
@@ -367,7 +367,7 @@ func (c *Client) internalPut(prefix, nodePath string, value interface{}, replace
 	case string:
 		return c.internalPutValue(prefix, nodePath, t)
 	default:
-		log.Warning("Set unexpect value type: %s", reflect.TypeOf(value))
+		logger.Warn("Set unexpect value type: %s", reflect.TypeOf(value))
 		val := fmt.Sprintf("%v", t)
 		return c.internalPutValue(prefix, nodePath, val)
 	}
@@ -384,7 +384,7 @@ func (c *Client) internalPutValues(prefix string, nodePath string, values map[st
 	for k, v := range values {
 		k = util.AppendPathPrefix(k, new_prefix)
 		ops = append(ops, client.OpPut(k, v))
-		log.Debug("SetValue prefix:%s, nodePath:%s, value:%s", new_prefix, k, v)
+		logger.Debug("SetValue prefix:%s, nodePath:%s, value:%s", new_prefix, k, v)
 	}
 	for ok := true; ok; {
 		var commitOps []client.Op
@@ -398,7 +398,7 @@ func (c *Client) internalPutValues(prefix string, nodePath string, values map[st
 		txn := c.client.Txn(context.TODO())
 		txn.Then(commitOps...)
 		resp, err := txn.Commit()
-		log.Debug("SetValues err:%v, resp:%v", err, resp)
+		logger.Debug("SetValues err:%v, resp:%v", err, resp)
 		if err != nil {
 			return err
 		}
@@ -410,7 +410,7 @@ func (c *Client) internalPutValues(prefix string, nodePath string, values map[st
 func (c *Client) internalPutValue(prefix string, nodePath string, value string) error {
 	nodePath = util.AppendPathPrefix(nodePath, prefix)
 	resp, err := c.client.Put(context.TODO(), nodePath, value)
-	log.Debug("SetValue nodePath: %s, value:%s, resp:%v", nodePath, value, resp)
+	logger.Debug("SetValue nodePath: %s, value:%s, resp:%v", nodePath, value, resp)
 	if err != nil {
 		return err
 	}
@@ -418,7 +418,7 @@ func (c *Client) internalPutValue(prefix string, nodePath string, value string) 
 }
 
 func (c *Client) internalDelete(prefix, nodePath string, dir bool) error {
-	log.Debug("Delete from backend, prefix:%s, nodePath:%s, dir:%v", prefix, nodePath, dir)
+	logger.Debug("Delete from backend, prefix:%s, nodePath:%s, dir:%v", prefix, nodePath, dir)
 	nodePath = util.AppendPathPrefix(nodePath, prefix)
 	var err error
 	if dir {
@@ -441,7 +441,7 @@ func (c *Client) internalDelete(prefix, nodePath string, dir bool) error {
 					}
 					key := path.Join("/", k)
 					_, dir := v.(map[string]interface{})
-					log.Debug("Delete from backend, key:%s, dir:%v", key, dir)
+					logger.Debug("Delete from backend, key:%s, dir:%v", key, dir)
 					if dir {
 						ops = append(ops, client.OpDelete(key, client.WithPrefix()))
 					} else {

@@ -20,7 +20,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
+
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/util"
 )
 
@@ -30,7 +32,7 @@ var (
 )
 
 func init() {
-	log.SetLevel("debug")
+	logger.SetLevelByString("debug")
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -555,7 +557,7 @@ func parseVersion(w *httptest.ResponseRecorder) int {
 func parse(w *httptest.ResponseRecorder) interface{} {
 	requestID := w.Header().Get("X-Metad-RequestID")
 	var result interface{}
-	log.Debug("%s response %s", requestID, w.Body.String())
+	logger.Debug("%s response %s", requestID, w.Body.String())
 	err := json.Unmarshal(w.Body.Bytes(), &result)
 	if err != nil {
 		panic(fmt.Errorf("json_err: %s", err.Error()))

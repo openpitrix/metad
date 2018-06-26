@@ -4,6 +4,15 @@
 
 default:
 
+vgo:
+	vgo fmt ./...
+	vgo vet ./...
+	vgo test ./...
+
+vgo_vendor:
+	mv vendor _vendor_backup
+	vgo mod -vendor
+
 graph:
 	godepgraph \
 		-o openpitrix.io/metad \
@@ -13,6 +22,7 @@ graph:
 		dot -Tpng > import-graph.png
 
 tools:
+	go get golang.org/x/vgo
 	go get github.com/kisielk/godepgraph
 
 clean:

@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"openpitrix.io/metad/backends"
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 	"openpitrix.io/metad/util"
 	"openpitrix.io/metad/util/flatmap"
@@ -53,7 +53,7 @@ func New(storeClient backends.StoreClient) *MetadataRepo {
 }
 
 func (r *MetadataRepo) StartSync() {
-	log.Info("Start Sync")
+	logger.Info("Start Sync")
 	r.startMetaSync()
 	r.startMappingSync()
 	r.startAccessRuleSync()
@@ -72,7 +72,7 @@ func (r *MetadataRepo) startAccessRuleSync() {
 }
 
 func (r *MetadataRepo) StopSync() {
-	log.Info("Stop Sync")
+	logger.Info("Stop Sync")
 	r.metaStopChan <- true
 	r.mappingStopChan <- true
 	r.accessRuleStopChan <- true
@@ -88,14 +88,12 @@ func (r *MetadataRepo) getAccessTree(clientIP string) store.AccessTree {
 	if accessTree == nil {
 		mappingData := r.GetMapping(path.Join("/", clientIP))
 		if mappingData == nil {
-			if log.IsDebugEnable() {
-				log.Debug("Can not find mapping for %s", clientIP)
-			}
+			logger.Debug("Can not find mapping for %s", clientIP)
 			return nil
 		}
 		mapping, mok := mappingData.(map[string]interface{})
 		if !mok {
-			log.Warning("Mapping for %s is not a map, result:%v", clientIP, mappingData)
+			logger.Warn("Mapping for %s is not a map, result:%v", clientIP, mappingData)
 			return nil
 		}
 		flattenMapping := flatmap.Flatten(mapping)
@@ -188,9 +186,7 @@ func (r *MetadataRepo) changeToResult(watcher store.Watcher, stopChan <-chan str
 
 func (r *MetadataRepo) WatchSelf(ctx context.Context, clientIP string, nodePath string) interface{} {
 	nodePath = path.Join(clientIP, "/", nodePath)
-	if log.IsDebugEnable() {
-		log.Debug("WatchSelf nodePath: %s", nodePath)
-	}
+	logger.Debug("WatchSelf nodePath: %s", nodePath)
 	mappingData := r.GetMapping(nodePath)
 	if mappingData == nil {
 		return nil
@@ -247,14 +243,12 @@ func (r *MetadataRepo) Self(clientIP string, nodePath string) interface{} {
 func (r *MetadataRepo) self(clientIP string, nodePath string, traveller store.Traveller) interface{} {
 	mappingData := r.GetMapping(path.Join("/", clientIP))
 	if mappingData == nil {
-		if log.IsDebugEnable() {
-			log.Debug("Can not find mapping for %s", clientIP)
-		}
+		logger.Debug("Can not find mapping for %s", clientIP)
 		return nil
 	}
 	mapping, mok := mappingData.(map[string]interface{})
 	if !mok {
-		log.Warning("Mapping for %s is not a map, result:%v", clientIP, mappingData)
+		logger.Warn("Mapping for %s is not a map, result:%v", clientIP, mappingData)
 		return nil
 	}
 	return r.getMappingDatas(nodePath, mapping, traveller)
@@ -283,7 +277,7 @@ func (r *MetadataRepo) getMappingDatas(nodePath string, mapping map[string]inter
 				if val != nil {
 					meta[k] = val
 				} else {
-					log.Warning("Can not get values from backend by mapping: %v", submapping)
+					logger.Warn("Can not get values from backend by mapping: %v", submapping)
 				}
 			} else {
 				subNodePath := fmt.Sprintf("%v", v)
@@ -291,7 +285,7 @@ func (r *MetadataRepo) getMappingDatas(nodePath string, mapping map[string]inter
 				if val != nil {
 					meta[k] = val
 				} else {
-					log.Warning("Can not get values from backend by mapping: %v", subNodePath)
+					logger.Warn("Can not get values from backend by mapping: %v", subNodePath)
 				}
 			}
 
@@ -308,9 +302,7 @@ func (r *MetadataRepo) getMappingDatas(nodePath string, mapping map[string]inter
 				return r.getMappingData(path.Join(paths[1:]...), fmt.Sprintf("%v", elemValue), traveller)
 			}
 		} else {
-			if log.IsDebugEnable() {
-				log.Debug("Can not find mapping for : %v, mapping:%v", nodePath, mapping)
-			}
+			logger.Debug("Can not find mapping for : %v, mapping:%v", nodePath, mapping)
 			return nil
 		}
 	}
@@ -365,7 +357,7 @@ func (r *MetadataRepo) PutMapping(nodePath string, data interface{}, replace boo
 	if nodePath == "/" {
 		m, ok := data.(map[string]interface{})
 		if !ok {
-			log.Warning("Unexpect data type for mapping: %s", reflect.TypeOf(data))
+			logger.Warn("Unexpect data type for mapping: %s", reflect.TypeOf(data))
 			return errors.New("mapping data should be json object.")
 		}
 		for k, v := range m {

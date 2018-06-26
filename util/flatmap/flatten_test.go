@@ -15,11 +15,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 )
 
 func init() {
-	log.SetLevel("debug")
+	logger.SetLevelByString("debug")
 }
 
 func TestFlatten(t *testing.T) {

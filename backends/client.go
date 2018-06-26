@@ -15,7 +15,7 @@ import (
 
 	"openpitrix.io/metad/backends/etcdv3"
 	"openpitrix.io/metad/backends/local"
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 )
 
@@ -50,7 +50,7 @@ func New(config Config) (StoreClient, error) {
 	}
 	config.Prefix = path.Join("/", config.Prefix)
 	backendNodes := config.BackendNodes
-	log.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
+	logger.Info("Backend nodes set to " + strings.Join(backendNodes, ", "))
 	if len(backendNodes) == 0 {
 		backendNodes = GetDefaultBackends(config.Backend)
 	}

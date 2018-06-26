@@ -31,8 +31,8 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"openpitrix.io/metad/backends"
-	"openpitrix.io/metad/log"
 	"openpitrix.io/metad/metadata"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 	"openpitrix.io/metad/util/flatmap"
 )
@@ -165,8 +165,8 @@ func (m *Metad) Serve() {
 	m.watchSignals()
 	m.watchManage()
 
-	log.Info("Listening on %s", m.config.Listen)
-	log.Fatal("%v", http.ListenAndServe(m.config.Listen, m.router))
+	logger.Info("Listening on %s", m.config.Listen)
+	logger.Fatal("%v", http.ListenAndServe(m.config.Listen, m.router))
 }
 
 func (m *Metad) Stop() {
@@ -178,7 +178,7 @@ func (m *Metad) watchSignals() {
 	signal.Notify(notifier, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-notifier
-		log.Info("Received stop signal")
+		logger.Info("Received stop signal")
 		signal.Stop(notifier)
 		m.Stop()
 		pid := syscall.Getpid()
@@ -191,7 +191,7 @@ func (m *Metad) watchSignals() {
 }
 
 func (m *Metad) watchManage() {
-	log.Info("Listening for Manage on %s", m.config.ListenManage)
+	logger.Info("Listening for Manage on %s", m.config.ListenManage)
 	go http.ListenAndServe(m.config.ListenManage, m.manageRouter)
 }
 
@@ -226,9 +226,7 @@ func (m *Metad) dataUpdate(ctx context.Context, req *http.Request) (interface{},
 		replace := "POST" == strings.ToUpper(req.Method)
 		err = m.metadataRepo.PutData(nodePath, data, replace)
 		if err != nil {
-			if log.IsDebugEnable() {
-				log.Debug("dataUpdate  nodePath:%s, data:%v, error:%s", nodePath, data, err.Error())
-			}
+			logger.Debug("dataUpdate  nodePath:%s, data:%v, error:%s", nodePath, data, err.Error())
 			return nil, NewServerError(err)
 		} else {
 			return nil, nil
@@ -279,7 +277,7 @@ func (m *Metad) mappingUpdate(ctx context.Context, req *http.Request) (interface
 	if err != nil {
 		return nil, NewHttpError(http.StatusBadRequest, fmt.Sprintf("read request error:%s", err.Error()))
 	}
-	log.Info("%s\tBODY\t%s", ctx.Value("requestID"), string(buf))
+	logger.Info("%s\tBODY\t%s", ctx.Value("requestID"), string(buf))
 	decoder := json.NewDecoder(bytes.NewReader(buf))
 	var data interface{}
 	err = decoder.Decode(&data)
@@ -291,9 +289,7 @@ func (m *Metad) mappingUpdate(ctx context.Context, req *http.Request) (interface
 		replace := "POST" == strings.ToUpper(req.Method)
 		err = m.metadataRepo.PutMapping(nodePath, data, replace)
 		if err != nil {
-			if log.IsDebugEnable() {
-				log.Debug("mappingUpdate  nodePath:%s, data:%v, error:%s", nodePath, data, err.Error())
-			}
+			logger.Debug("mappingUpdate  nodePath:%s, data:%v, error:%s", nodePath, data, err.Error())
 			return nil, NewServerError(err)
 		} else {
 			return nil, nil
@@ -339,9 +335,7 @@ func (m *Metad) accessRuleUpdate(ctx context.Context, req *http.Request) (interf
 	} else {
 		err = m.metadataRepo.PutAccessRule(data)
 		if err != nil {
-			if log.IsDebugEnable() {
-				log.Debug("accessRuleUpdate data:%v, error:%s", data, err.Error())
-			}
+			logger.Debug("accessRuleUpdate data:%v, error:%s", data, err.Error())
 			return nil, NewServerError(err)
 		} else {
 			return nil, nil
@@ -527,7 +521,7 @@ func respondText(w http.ResponseWriter, req *http.Request, val interface{}) int 
 			buffer.WriteString("\n")
 		}
 	default:
-		log.Error("Value is of a type I don't know how to handle: %v", val)
+		logger.Error("Value is of a type I don't know how to handle: %v", val)
 	}
 	w.Write(buffer.Bytes())
 	return buffer.Len()
@@ -577,7 +571,7 @@ func (m *Metad) requestIP(req *http.Request) string {
 
 	clientIp, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
-		log.Error("Get RequestIP error: %s", err.Error())
+		logger.Error("Get RequestIP error: %s", err.Error())
 	}
 	return clientIp
 }
@@ -617,9 +611,7 @@ func (m *Metad) handleWrapper(handler handleFunc) func(w http.ResponseWriter, re
 				respondSuccessDefault(w, req)
 			} else {
 				len = respondSuccess(w, req, result)
-				if log.IsDebugEnable() {
-					log.Debug("%s\tRESP\t%v", requestID, result)
-				}
+				logger.Debug("%s\tRESP\t%v", requestID, result)
 			}
 		}
 		m.requestLog(requestID, version, req, status, elapsed, len)
@@ -649,9 +641,7 @@ func (m *Metad) manageWrapper(manager manageFunc) func(w http.ResponseWriter, re
 				respondSuccessDefault(w, req)
 			} else {
 				len = respondSuccess(w, req, result)
-				if log.IsDebugEnable() {
-					log.Debug("%s\tRESP\t%v", requestID, result)
-				}
+				logger.Debug("%s\tRESP\t%v", requestID, result)
 			}
 		}
 		m.requestLog(requestID, version, req, status, elapsed, len)
@@ -664,13 +654,13 @@ func (m *Metad) generateRequestID() string {
 }
 
 func (m *Metad) requestLog(requestID string, version int64, req *http.Request, status int, elapsed time.Duration, len int) {
-	log.Info("%s\t%d\t%s\t%s\t%s\t%v\t%v\t%v\t%v", requestID, version, req.Method, m.requestIP(req), req.URL.RequestURI(), req.ContentLength, status, int64(elapsed.Seconds()*1000), len)
+	logger.Info("%s\t%d\t%s\t%s\t%s\t%v\t%v\t%v\t%v", requestID, version, req.Method, m.requestIP(req), req.URL.RequestURI(), req.ContentLength, status, int64(elapsed.Seconds()*1000), len)
 }
 
 func (m *Metad) errorLog(requestID string, req *http.Request, status int, msg string) {
 	if status == 500 {
-		log.Error("ERR\t%s\t%s\t%s\t%s\t%v\t%v\t%s", requestID, req.Method, m.requestIP(req), req.RequestURI, req.ContentLength, status, msg)
+		logger.Error("ERR\t%s\t%s\t%s\t%s\t%v\t%v\t%s", requestID, req.Method, m.requestIP(req), req.RequestURI, req.ContentLength, status, msg)
 	} else {
-		log.Warning("ERR\t%s\t%s\t%s\t%s\t%v\t%v\t%s", requestID, req.Method, m.requestIP(req), req.RequestURI, req.ContentLength, status, msg)
+		logger.Warn("ERR\t%s\t%s\t%s\t%s\t%v\t%v\t%s", requestID, req.Method, m.requestIP(req), req.RequestURI, req.ContentLength, status, msg)
 	}
 }
