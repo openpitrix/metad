@@ -18,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"openpitrix.io/metad/pkg/logger"
+	"openpitrix.io/metad/pkg/store"
 	"openpitrix.io/metad/pkg/util/flatmap"
-	"openpitrix.io/metad/store"
 )
 
 var (

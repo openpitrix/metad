@@ -10,7 +10,7 @@ package local
 
 import (
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
+	"openpitrix.io/metad/pkg/store"
 )
 
 // a backend just for test.
