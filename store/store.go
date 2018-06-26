@@ -16,8 +16,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"openpitrix.io/metad/util"
-	"openpitrix.io/metad/util/flatmap"
+	"openpitrix.io/metad/pkg/util"
+	"openpitrix.io/metad/pkg/util/flatmap"
 )
 
 type Store interface {

@@ -24,9 +24,9 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 
 	"openpitrix.io/metad/pkg/logger"
+	"openpitrix.io/metad/pkg/util"
+	"openpitrix.io/metad/pkg/util/flatmap"
 	"openpitrix.io/metad/store"
-	"openpitrix.io/metad/util"
-	"openpitrix.io/metad/util/flatmap"
 )
 
 const SELF_MAPPING_PATH = "/_metad/mapping"
