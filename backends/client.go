@@ -9,10 +9,10 @@ import (
 	"path"
 	"strings"
 
-	"github.com/yunify/metad/backends/etcdv3"
-	"github.com/yunify/metad/backends/local"
-	"github.com/yunify/metad/log"
-	"github.com/yunify/metad/store"
+	"openpitrix.io/metad/backends/etcdv3"
+	"openpitrix.io/metad/backends/local"
+	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/store"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve

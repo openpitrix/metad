@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/yunify/metad/tools/benchmark/cmd"
+	"openpitrix.io/metad/tools/benchmark/cmd"
 )
 
 func main() {

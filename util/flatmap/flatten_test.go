@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/yunify/metad/log"
+	"openpitrix.io/metad/log"
 )
 
 func init() {

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/yunify/metad/util/flatmap"
+	"openpitrix.io/metad/util/flatmap"
 )
 
 func TrimPathPrefix(nodePath string, prefix string) string {

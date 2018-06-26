@@ -13,8 +13,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/yunify/metad/backends"
-	"github.com/yunify/metad/log"
+	"openpitrix.io/metad/backends"
+	"openpitrix.io/metad/log"
 )
 
 type Nodes []string

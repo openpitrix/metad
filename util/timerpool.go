@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/yunify/metad/atomic"
+	"openpitrix.io/metad/atomic"
 )
 
 type TimerPool struct {

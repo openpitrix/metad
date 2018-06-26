@@ -12,7 +12,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/yunify/metad/log"
+	"openpitrix.io/metad/log"
 )
 
 func main() {
