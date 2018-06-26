@@ -18,11 +18,11 @@ import (
 	"strings"
 	"time"
 
-	"openpitrix.io/metad/backends"
+	"openpitrix.io/metad/pkg/backends"
+	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
-	"openpitrix.io/metad/util"
-	"openpitrix.io/metad/util/flatmap"
+	"openpitrix.io/metad/pkg/store"
+	"openpitrix.io/metad/pkg/util"
 )
 
 const DEFAULT_WATCH_BUF_LEN = 100

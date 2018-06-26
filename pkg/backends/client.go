@@ -13,10 +13,10 @@ import (
 	"path"
 	"strings"
 
-	"openpitrix.io/metad/backends/etcdv3"
-	"openpitrix.io/metad/backends/local"
+	"openpitrix.io/metad/pkg/backends/etcdv3"
+	"openpitrix.io/metad/pkg/backends/local"
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
+	"openpitrix.io/metad/pkg/store"
 )
 
 // The StoreClient interface is implemented by objects that can retrieve

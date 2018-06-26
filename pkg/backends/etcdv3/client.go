@@ -9,6 +9,7 @@
 package etcdv3
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -21,12 +22,11 @@ import (
 
 	client "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-	"golang.org/x/net/context"
 
+	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
-	"openpitrix.io/metad/util"
-	"openpitrix.io/metad/util/flatmap"
+	"openpitrix.io/metad/pkg/store"
+	"openpitrix.io/metad/pkg/util"
 )
 
 const SELF_MAPPING_PATH = "/_metad/mapping"

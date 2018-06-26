@@ -30,11 +30,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	yaml "gopkg.in/yaml.v2"
 
-	"openpitrix.io/metad/backends"
-	"openpitrix.io/metad/metadata"
+	"openpitrix.io/metad/pkg/backends"
+	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
-	"openpitrix.io/metad/util/flatmap"
+	"openpitrix.io/metad/pkg/metadata"
+	"openpitrix.io/metad/pkg/store"
 )
 
 const (

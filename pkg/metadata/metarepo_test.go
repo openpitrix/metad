@@ -9,18 +9,18 @@
 package metadata
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
-	"openpitrix.io/metad/backends"
+	"openpitrix.io/metad/pkg/backends"
+	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
-	"openpitrix.io/metad/util/flatmap"
+	"openpitrix.io/metad/pkg/store"
 )
 
 func init() {

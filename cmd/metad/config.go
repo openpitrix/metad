@@ -17,7 +17,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"openpitrix.io/metad/backends"
+	"openpitrix.io/metad/pkg/backends"
 	"openpitrix.io/metad/pkg/logger"
 )
 

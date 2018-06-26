@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/store"
+	"openpitrix.io/metad/pkg/store"
 )
 
 func init() {

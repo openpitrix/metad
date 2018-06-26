@@ -21,9 +21,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"openpitrix.io/metad/pkg/logger"
-
-	"openpitrix.io/metad/pkg/logger"
-	"openpitrix.io/metad/util"
+	"openpitrix.io/metad/pkg/util"
 )
 
 var (
