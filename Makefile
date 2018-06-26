@@ -6,9 +6,9 @@ default:
 
 graph:
 	godepgraph \
-		-o github.com/yunify/metad \
-		-p github.com/yunify/metad/vendor \
-		github.com/yunify/metad \
+		-o openpitrix.io/metad \
+		-p openpitrix.io/metad/vendor \
+		openpitrix.io/metad \
 	| \
 		dot -Tpng > import-graph.png
 

@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -25,7 +26,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	yaml "gopkg.in/yaml.v2"
 
-	"openpitrix.io/metad/atomic"
 	"openpitrix.io/metad/backends"
 	"openpitrix.io/metad/log"
 	"openpitrix.io/metad/metadata"
@@ -67,8 +67,10 @@ type Metad struct {
 	metadataRepo *metadata.MetadataRepo
 	router       *mux.Router
 	manageRouter *mux.Router
-	requestIDGen atomic.AtomicLong
+	requestIDGen atomic_AtomicLong
 }
+
+type atomic_AtomicLong int64
 
 func New(config *Config) (*Metad, error) {
 
@@ -653,7 +655,8 @@ func (m *Metad) manageWrapper(manager manageFunc) func(w http.ResponseWriter, re
 }
 
 func (m *Metad) generateRequestID() string {
-	return fmt.Sprintf("REQ-%d", m.requestIDGen.IncrementAndGet())
+	id := atomic.AddInt64((*int64)(&m.requestIDGen), 1)
+	return fmt.Sprintf("REQ-%d", id)
 }
 
 func (m *Metad) requestLog(requestID string, version int64, req *http.Request, status int, elapsed time.Duration, len int) {

@@ -10,8 +10,8 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 
-	"openpitrix.io/metad/atomic"
 	"openpitrix.io/metad/util"
 	"openpitrix.io/metad/util/flatmap"
 )
@@ -41,9 +41,11 @@ type Store interface {
 	Traveller(accessTree AccessTree) Traveller
 }
 
+type atomic_AtomicLong int64
+
 type store struct {
 	Root      *node
-	version   atomic.AtomicLong
+	version   atomic_AtomicLong
 	worldLock sync.RWMutex // stop the world lock
 	cleanChan chan string
 }
@@ -55,7 +57,7 @@ func New() Store {
 
 func newStore() *store {
 	s := new(store)
-	s.version = atomic.AtomicLong(int64(0))
+	s.version = 0
 	s.Root = newDir(s, "/", nil)
 	s.cleanChan = make(chan string, 100)
 	go func() {
@@ -83,7 +85,7 @@ func (s *store) Get(nodePath string) (currentVersion int64, val interface{}) {
 
 	s.worldLock.RLock()
 	defer s.worldLock.RUnlock()
-	currentVersion = s.version.Get()
+	currentVersion = atomic.LoadInt64((*int64)(&s.version))
 	val = nil
 
 	nodePath = path.Clean(path.Join("/", nodePath))
@@ -136,7 +138,7 @@ func (s *store) Delete(nodePath string) {
 		// if the node does not exist, treat as success
 		return
 	}
-	s.version.IncrementAndGet()
+	atomic.AddInt64((*int64)(&s.version), 1)
 	n.Remove()
 }
 
@@ -166,7 +168,7 @@ func (s *store) Json() string {
 }
 
 func (s *store) Version() int64 {
-	return s.version.Get()
+	return atomic.LoadInt64((*int64)(&s.version))
 }
 
 func (s *store) Clean(nodePath string) {
@@ -212,7 +214,7 @@ func (s *store) walk(nodePath string, walkFunc func(prev *node, component string
 
 func (s *store) internalPut(nodePath string, value string) *node {
 
-	s.version.IncrementAndGet()
+	atomic.AddInt64((*int64)(&s.version), 1)
 
 	// nodePath is "/", just ignore put value.
 	if nodePath == "/" {
