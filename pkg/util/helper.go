@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"openpitrix.io/metad/pkg/util/flatmap"
+	"openpitrix.io/metad/pkg/flatmap"
 )
 
 func TrimPathPrefix(nodePath string, prefix string) string {

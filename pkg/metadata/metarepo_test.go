@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"openpitrix.io/metad/pkg/backends"
+	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/pkg/store"
-	"openpitrix.io/metad/pkg/util/flatmap"
 )
 
 func init() {
