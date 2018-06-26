@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/yunify/metad/atomic"
-	"github.com/yunify/metad/util"
-	"github.com/yunify/metad/util/flatmap"
+	"openpitrix.io/metad/atomic"
+	"openpitrix.io/metad/util"
+	"openpitrix.io/metad/util/flatmap"
 )
 
 type Store interface {

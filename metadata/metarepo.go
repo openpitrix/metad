@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yunify/metad/backends"
-	"github.com/yunify/metad/log"
-	"github.com/yunify/metad/store"
-	"github.com/yunify/metad/util"
-	"github.com/yunify/metad/util/flatmap"
+	"openpitrix.io/metad/backends"
+	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/store"
+	"openpitrix.io/metad/util"
+	"openpitrix.io/metad/util/flatmap"
 )
 
 const DEFAULT_WATCH_BUF_LEN = 100

@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/yunify/metad/log"
+	"openpitrix.io/metad/log"
 )
 
 // Flatten takes a structure and turns into a flat map[string]string.

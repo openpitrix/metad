@@ -16,8 +16,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/yunify/metad/log"
-	"github.com/yunify/metad/util"
+	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/util"
 )
 
 var (
