@@ -9,6 +9,7 @@
 package etcdv3
 
 import (
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -21,7 +22,6 @@ import (
 
 	client "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
-	"golang.org/x/net/context"
 
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
