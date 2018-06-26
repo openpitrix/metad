@@ -18,7 +18,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 )
 
 // Flatten takes a structure and turns into a flat map[string]string.
@@ -104,11 +104,11 @@ func flatten(result map[string]string, prefix string, v reflect.Value) {
 			if v.IsNil() {
 				result[prefix] = ""
 			} else {
-				log.Warning("Unknow type: %v", v.Type())
+				logger.Warn("Unknow type: %v", v.Type())
 				result[prefix] = fmt.Sprintf("%v", v.Interface())
 			}
 		default:
-			log.Warning("Unknow type: %v", v.Type())
+			logger.Warn("Unknow type: %v", v.Type())
 			result[prefix] = fmt.Sprintf("%v", v.Interface())
 		}
 	}

@@ -18,7 +18,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"openpitrix.io/metad/backends"
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 )
 
 type Nodes []string
@@ -120,13 +120,13 @@ func initConfig() (*Config, error) {
 
 	if config.LogLevel != "" {
 		println("set log level to:", config.LogLevel)
-		log.SetLevel(config.LogLevel)
+		logger.SetLevelByString(config.LogLevel)
 	}
 
 	if config.PIDFile != "" {
-		log.Info("Writing pid %d to %s", os.Getpid(), config.PIDFile)
+		logger.Info("Writing pid %d to %s", os.Getpid(), config.PIDFile)
 		if err := ioutil.WriteFile(config.PIDFile, []byte(strconv.Itoa(os.Getpid())), 0644); err != nil {
-			log.Fatal("Failed to write pid file %s: %v", config.PIDFile, err)
+			logger.Fatal("Failed to write pid file %s: %v", config.PIDFile, err)
 		}
 	}
 
@@ -140,12 +140,12 @@ func initConfig() (*Config, error) {
 func loadConfigFile(configFile string, config *Config) error {
 	data, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Warning("Failed to read config file: %s, err: %s", configFile, err.Error())
+		logger.Warn("Failed to read config file: %s, err: %s", configFile, err.Error())
 		return err
 	}
 	err = yaml.Unmarshal(data, config)
 	if err != nil {
-		log.Warning("Failed to parse config file: %s, err: %s", configFile, err.Error())
+		logger.Warn("Failed to parse config file: %s, err: %s", configFile, err.Error())
 		return err
 	}
 	return nil

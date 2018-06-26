@@ -9,7 +9,7 @@
 package local
 
 import (
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 )
 
@@ -143,7 +143,7 @@ func (c *Client) internalSync(name string, from store.Store, to store.Store, sto
 			if !ok {
 				return
 			}
-			log.Debug("processEvent %s %s %s", e.Action, e.Path, e.Value)
+			logger.Debug("processEvent %s %s %s", e.Action, e.Path, e.Value)
 			switch e.Action {
 			case store.Delete:
 				to.Delete(e.Path)
@@ -151,7 +151,7 @@ func (c *Client) internalSync(name string, from store.Store, to store.Store, sto
 				to.Put(e.Path, e.Value)
 			}
 		case <-stopChan:
-			log.Info("Stop sync %s", name)
+			logger.Info("Stop sync %s", name)
 			w.Remove()
 		}
 	}

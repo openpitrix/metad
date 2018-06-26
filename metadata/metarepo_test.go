@@ -18,13 +18,13 @@ import (
 	"golang.org/x/net/context"
 
 	"openpitrix.io/metad/backends"
-	"openpitrix.io/metad/log"
+	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/store"
 	"openpitrix.io/metad/util/flatmap"
 )
 
 func init() {
-	log.SetLevel("error")
+	logger.SetLevelByString("error")
 	rand.Seed(int64(time.Now().Nanosecond()))
 }
 
@@ -249,7 +249,7 @@ func TestMetarepoSelf(t *testing.T) {
 	time.Sleep(sleepTime)
 	val = metarepo.Self(ip, "/dir/n1/name")
 	if val != "node1" {
-		log.Error("except node1, but get %s, ip: %s, data: %s, mapping:%s", val, ip, metarepo.data.Json(), metarepo.mapping.Json())
+		logger.Error("except node1, but get %s, ip: %s, data: %s, mapping:%s", val, ip, metarepo.data.Json(), metarepo.mapping.Json())
 		t.Fatal("except node1, but get", val)
 	}
 	assert.Equal(t, "node1", val)
@@ -330,7 +330,7 @@ func TestWatch(t *testing.T) {
 	select {
 	case result = <-ch:
 	case <-time.Tick(sleepTime):
-		log.Error("TestWatch wait timeout, key: /, ip: %s, data: %s, mapping: %s", ip, metarepo.data.Json(), metarepo.mapping.Json())
+		logger.Error("TestWatch wait timeout, key: /, ip: %s, data: %s, mapping: %s", ip, metarepo.data.Json(), metarepo.mapping.Json())
 		t.Fatal("TestWatch wait timeout")
 	}
 
@@ -352,7 +352,7 @@ func TestWatch(t *testing.T) {
 	select {
 	case result = <-ch:
 	case <-time.Tick(sleepTime):
-		log.Error("TestWatch wait timeout for key /nodes/1/name , ip: %s, data: %s, mapping: %s", ip, metarepo.data.Json(), metarepo.mapping.Json())
+		logger.Error("TestWatch wait timeout for key /nodes/1/name , ip: %s, data: %s, mapping: %s", ip, metarepo.data.Json(), metarepo.mapping.Json())
 		t.Fatal("TestWatch wait timeout")
 	}
 
@@ -427,7 +427,7 @@ func TestWatchSelf(t *testing.T) {
 	//println(fmt.Sprintf("%v", m))
 	assert.Equal(t, "DELETE|n1_10", m["name"])
 
-	log.Debug("TimerPool stat,total New:%v, Get:%v", metarepo.timerPool.TotalNew.Get(), metarepo.timerPool.TotalGet.Get())
+	//logger.Debug("TimerPool stat,total New:%v, Get:%v", metarepo.timerPool.TotalNew.Get(), metarepo.timerPool.TotalGet.Get())
 	metarepo.StopSync()
 }
 
@@ -594,7 +594,7 @@ func FillTestData(metarepo *MetadataRepo) map[string]string {
 	}
 	err := metarepo.PutData("/", testData, true)
 	if err != nil {
-		log.Error("SetValues error", err.Error())
+		logger.Error("SetValues error", err.Error())
 		panic(err)
 	}
 	return flatmap.Flatten(testData)
