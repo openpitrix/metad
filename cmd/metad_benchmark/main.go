@@ -11,12 +11,10 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"openpitrix.io/metad/tools/benchmark/cmd"
 )
 
 func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(-1)
 	}

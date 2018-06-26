@@ -6,7 +6,7 @@
 // Use of this source code is governed by a Apache license
 // that can be found in the LICENSE file.
 
-package cmd
+package main
 
 // Generate metadata for benchmark,
 // The metadata format for this benchmark is the metadata format for simulating qingcloud appcenter.
