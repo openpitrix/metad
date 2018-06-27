@@ -12,30 +12,31 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	. "openpitrix.io/metad/pkg/assert"
 )
 
 func TestStoreBasic(t *testing.T) {
 	s := New()
 
 	_, val := s.Get("/foo")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 
 	s.Put("/foo", "bar")
 
 	//println(store.Json())
 
 	_, val = s.Get("/foo")
-	assert.Equal(t, "bar", val)
+	Assert(t, reflect.DeepEqual("bar", val))
 
 	s.Delete("/foo")
 
 	_, val = s.Get("/foo")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 	s.Destroy()
 }
 
@@ -46,16 +47,16 @@ func TestStoreDir(t *testing.T) {
 
 	_, val := s.Get("/foo")
 	_, mok := val.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 
 	s.Put("/foo/foo1/key1", "val1")
 	_, val = s.Get("/foo/foo1/key1")
-	assert.Equal(t, "val1", val)
+	Assert(t, reflect.DeepEqual("val1", val))
 
 	s.Delete("/foo/foo1")
 
 	_, val = s.Get("/foo/foo1")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 	s.Destroy()
 
 }
@@ -74,7 +75,7 @@ func TestStoreBulk(t *testing.T) {
 	_, val := s.Get("/clusters/10")
 
 	_, val = s.Get("/clusters/1/ip")
-	assert.Equal(t, "192.168.0.1", val)
+	Assert(t, reflect.DeepEqual("192.168.0.1", val))
 	s.Destroy()
 
 }
@@ -94,7 +95,7 @@ func TestStoreSets(t *testing.T) {
 	_, val := s.Get("/clusters/10")
 
 	_, val = s.Get("/clusters/1/ip")
-	assert.Equal(t, "192.168.0.1", val)
+	Assert(t, reflect.DeepEqual("192.168.0.1", val))
 	s.Destroy()
 
 }
@@ -108,10 +109,10 @@ func TestStoreNodeToDirPanic(t *testing.T) {
 
 	_, v := s.Get("/nodes/6")
 	_, mok := v.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 
 	_, v = s.Get("/nodes/6/label/key1")
-	assert.Equal(t, "value1", v)
+	Assert(t, reflect.DeepEqual("value1", v))
 	s.Destroy()
 }
 
@@ -129,18 +130,18 @@ func TestStoreClean(t *testing.T) {
 	//println(store.Json())
 
 	_, val := s.Get("/nodes/6/label")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 
 	// if dir's children been deleted, and dir has text value ,dir will become a leaf node.
 	_, val = s.Get("/nodes/6")
-	assert.Equal(t, "node6", val)
+	Assert(t, reflect.DeepEqual("node6", val))
 
 	// when delete leaf node, empty parent dir will been auto delete.
 	s.Put("/nodes/7/label/key1", "value1")
 	s.Delete("/nodes/7/label/key1")
 
 	_, val = s.Get("/nodes/7")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 	s.Destroy()
 }
 
@@ -161,75 +162,75 @@ func TestWatch(t *testing.T) {
 	w := s.Watch("/nodes/6", 100)
 	s.Put("/nodes/6", "node6")
 	e := readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/", e.Path)
-	assert.Equal(t, "node6", e.Value)
+	Assert(t, Update == e.Action)
+	Assert(t, "/" == e.Path)
+	Assert(t, "node6" == e.Value)
 
 	s.Put("/nodes/6/label/key1", "value1")
 
 	// leaf node /nodes/6 convert to dir, tread as deleted.
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Delete, e.Action)
-	assert.Equal(t, "/", e.Path)
+	Assert(t, Delete == e.Action)
+	Assert(t, "/" == e.Path)
 
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/label/key1", e.Path)
-	assert.Equal(t, "value1", e.Value)
+	Assert(t, Update == e.Action)
+	Assert(t, "/label/key1" == e.Path)
+	Assert(t, "value1" == e.Value)
 
 	s.Put("/nodes/6/label/key1", "value2")
 
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/label/key1", e.Path)
-	assert.Equal(t, "value2", e.Value)
+	Assert(t, Update == e.Action)
+	Assert(t, "/label/key1" == e.Path)
+	Assert(t, "value2" == e.Value)
 
 	s.Delete("/nodes/6/label/key1")
 
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Delete, e.Action)
-	assert.Equal(t, "/label/key1", e.Path)
+	Assert(t, Delete == e.Action)
+	Assert(t, "/label/key1" == e.Path)
 
 	// when /nodes/6's children remove, it return to a leaf node.
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/", e.Path)
+	Assert(t, Update == e.Action)
+	Assert(t, "/" == e.Path)
 
 	s.Put("/nodes/6/name", "node6")
 	s.Put("/nodes/6/ip", "192.168.1.1")
 
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Delete, e.Action)
-	assert.Equal(t, "/", e.Path)
+	Assert(t, Delete == e.Action)
+	Assert(t, "/" == e.Path)
 
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/name", e.Path)
+	Assert(t, Update == e.Action)
+	Assert(t, "/name" == e.Path)
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/ip", e.Path)
+	Assert(t, Update == e.Action)
+	Assert(t, "/ip" == e.Path)
 
 	s.Delete("/nodes/6")
 
 	e = readEvent(w.EventChan())
 	//println(e.Action,e.Path)
-	assert.Equal(t, Delete, e.Action)
-	assert.True(t, e.Path == "/name" || e.Path == "/ip")
+	Assert(t, Delete == e.Action)
+	Assert(t, e.Path == "/name" || e.Path == "/ip")
 
 	e = readEvent(w.EventChan())
 	//println(e.Action,e.Path)
-	assert.Equal(t, Delete, e.Action)
-	assert.True(t, e.Path == "/name" || e.Path == "/ip")
+	Assert(t, Delete == e.Action)
+	Assert(t, e.Path == "/name" || e.Path == "/ip")
 
 	e = readEvent(w.EventChan())
 	// expect no more event.
-	assert.Nil(t, e)
+	Assert(t, nil == e)
 
 	s2 := s.(*store)
 	s2.worldLock.RLock()
 	n := s2.internalGet("/nodes/6")
 	s2.worldLock.RUnlock()
-	assert.NotNil(t, n)
+	Assert(t, n != nil)
 
 	w.Remove()
 
@@ -238,12 +239,12 @@ func TestWatch(t *testing.T) {
 	s2.worldLock.RLock()
 	n = s2.internalGet("/nodes/6")
 	s2.worldLock.RUnlock()
-	assert.Nil(t, n)
+	Assert(t, nil == n)
 
 	s2.worldLock.RLock()
 	n = s2.internalGet("/nodes")
 	s2.worldLock.RUnlock()
-	assert.Nil(t, n)
+	Assert(t, nil == n)
 
 	s.Destroy()
 }
@@ -258,24 +259,24 @@ func TestWatchRoot(t *testing.T) {
 
 	var e *Event
 	e = readEvent(w.EventChan())
-	assert.Equal(t, Update, e.Action)
-	assert.Equal(t, "/nodes/6/ip", e.Path)
+	Assert(t, Update == e.Action)
+	Assert(t, "/nodes/6/ip" == e.Path)
 
 	s.Delete("/")
 
 	e = readEvent(w.EventChan())
 	//println(e.Action,e.Path)
-	assert.Equal(t, Delete, e.Action)
-	assert.True(t, e.Path == "/nodes/6/name" || e.Path == "/nodes/6/ip")
+	Assert(t, Delete == e.Action)
+	Assert(t, e.Path == "/nodes/6/name" || e.Path == "/nodes/6/ip")
 
 	e = readEvent(w.EventChan())
 	//println(e.Action,e.Path)
-	assert.Equal(t, Delete, e.Action)
-	assert.True(t, e.Path == "/nodes/6/name" || e.Path == "/nodes/6/ip")
+	Assert(t, Delete == e.Action)
+	Assert(t, e.Path == "/nodes/6/name" || e.Path == "/nodes/6/ip")
 
 	e = readEvent(w.EventChan())
 	// expect no more event.
-	assert.Nil(t, e)
+	Assert(t, nil == e)
 	w.Remove()
 	s.Destroy()
 }
@@ -283,18 +284,18 @@ func TestWatchRoot(t *testing.T) {
 func TestEmptyStore(t *testing.T) {
 	s := newStore()
 	_, val := s.Get("/")
-	assert.Equal(t, 0, len(val.(map[string]interface{})))
+	Assert(t, 0 == len(val.(map[string]interface{})))
 
 	s.Put("/", "test")
 
 	_, val = s.Get("/")
-	assert.Equal(t, 0, len(val.(map[string]interface{})))
+	Assert(t, 0 == len(val.(map[string]interface{})))
 
 	w := s.Watch("/", 10)
-	assert.NotNil(t, w)
+	Assert(t, w != nil)
 	s.Delete("/")
 	e := readEvent(w.EventChan())
-	assert.Nil(t, e)
+	Assert(t, nil == e)
 
 	w.Remove()
 	s.Destroy()
@@ -309,11 +310,11 @@ func TestBlankNode(t *testing.T) {
 	})
 
 	_, val := s.Get("/")
-	assert.Equal(t, 0, len(val.(map[string]interface{})))
+	Assert(t, 0 == len(val.(map[string]interface{})))
 
 	s.Put("/test//node", "n1")
 	_, val = s.Get("/test/node")
-	assert.Equal(t, val, "n1")
+	Assert(t, reflect.DeepEqual(val, "n1"))
 	s.Destroy()
 
 }

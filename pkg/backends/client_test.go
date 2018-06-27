@@ -12,11 +12,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
+	. "openpitrix.io/metad/pkg/assert"
 	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/pkg/store"
@@ -48,21 +48,36 @@ func TestClientGetPut(t *testing.T) {
 			Prefix:       prefix,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		err = storeClient.Delete("/", true)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		err = storeClient.Put("testkey", "testvalue", false)
-		assert.NoError(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		val, getErr := storeClient.Get("testkey", false)
-		assert.NoError(t, getErr)
-		assert.Equal(t, "testvalue", val)
+		val, err := storeClient.Get("testkey", false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if "testvalue" != val {
+			t.Fatalf("equal failed: %v", val)
+		}
 
 		// test no exist key
-		val, getErr = storeClient.Get("noexistkey", false)
-		assert.NoError(t, getErr)
-		assert.Equal(t, "", val)
+		val, err = storeClient.Get("noexistkey", false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if "" != val {
+			t.Fatalf("equal failed: %v", val)
+		}
 
 		storeClient.Delete("/", true)
 	}
@@ -82,9 +97,9 @@ func TestClientGetsPuts(t *testing.T) {
 			Prefix:       prefix,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		Assert(t, nil == storeClient.Delete("/", true))
 
 		values := map[string]interface{}{
 			"subkey1": map[string]interface{}{
@@ -94,11 +109,11 @@ func TestClientGetsPuts(t *testing.T) {
 		}
 
 		err = storeClient.Put("testkey", values, true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		val, getErr := storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values, val))
 
 		//test update
 
@@ -109,7 +124,7 @@ func TestClientGetsPuts(t *testing.T) {
 		}
 
 		err = storeClient.Put("testkey", values2, false)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		values3 := map[string]interface{}{
 			"subkey1": map[string]interface{}{
@@ -120,19 +135,19 @@ func TestClientGetsPuts(t *testing.T) {
 		}
 
 		val, getErr = storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values3, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values3, val))
 
 		//test replace
 
 		err = storeClient.Put("testkey", values2, true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		val, getErr = storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values2, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values2, val))
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		Assert(t, nil == storeClient.Delete("/", true))
 	}
 }
 
@@ -150,9 +165,9 @@ func TestClientPutJSON(t *testing.T) {
 			Prefix:       prefix,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		Assert(t, nil == storeClient.Delete("/", true))
 
 		jsonVal := []byte(`
 			{"subkey1":
@@ -164,14 +179,14 @@ func TestClientPutJSON(t *testing.T) {
 		`)
 		var values interface{}
 		err = json.Unmarshal(jsonVal, &values)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		err = storeClient.Put("testkey", values, true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		val, getErr := storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values, val))
 
 		//test update
 
@@ -188,10 +203,10 @@ func TestClientPutJSON(t *testing.T) {
 
 		var values2 interface{}
 		err = json.Unmarshal(jsonVal2, &values2)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		err = storeClient.Put("testkey", values2, false)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		values3 := map[string]interface{}{
 			"subkey1": map[string]interface{}{
@@ -205,13 +220,13 @@ func TestClientPutJSON(t *testing.T) {
 		}
 
 		val, getErr = storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values3, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values3, val))
 
 		//test replace
 
 		err = storeClient.Put("testkey", values2, true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		values4 := map[string]interface{}{
 			"subkey1": map[string]interface{}{
@@ -223,10 +238,10 @@ func TestClientPutJSON(t *testing.T) {
 		}
 
 		val, getErr = storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values4, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values4, val))
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		Assert(t, nil == storeClient.Delete("/", true))
 	}
 }
 
@@ -249,9 +264,9 @@ func TestClientNoPrefix(t *testing.T) {
 			Prefix:       prefix,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
-		assert.NoError(t, storeClient.Delete("/", true))
+		Assert(t, nil == storeClient.Delete("/", true))
 
 		metastore := store.New()
 		storeClient.Sync(metastore, stopChan)
@@ -264,11 +279,11 @@ func TestClientNoPrefix(t *testing.T) {
 		}
 
 		err = storeClient.Put("testkey", values, true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		val, getErr := storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, values, val)
+		Assert(t, nil == getErr)
+		Assert(t, reflect.DeepEqual(values, val))
 
 		mappings := map[string]interface{}{
 			"192.168.1.1": map[string]interface{}{
@@ -278,26 +293,26 @@ func TestClientNoPrefix(t *testing.T) {
 		err = storeClient.PutMapping("/", mappings, true)
 
 		mappings2, merr := storeClient.GetMapping("/", true)
-		assert.NoError(t, merr)
-		assert.Equal(t, mappings, mappings2)
+		Assert(t, nil == merr)
+		Assert(t, reflect.DeepEqual(mappings, mappings2))
 
 		time.Sleep(1000 * time.Millisecond)
 
 		// mapping data should not sync to metadata
 		_, val = metastore.Get("/_metad")
-		assert.Nil(t, val)
+		Assert(t, nil == val)
 
-		assert.NoError(t, storeClient.Delete("/", true))
-		assert.NoError(t, getErr)
+		Assert(t, nil == storeClient.Delete("/", true))
+		Assert(t, nil == getErr)
 
 		val, getErr = storeClient.Get("testkey", true)
-		assert.NoError(t, getErr)
-		assert.Equal(t, 0, len(val.(map[string]interface{})))
+		Assert(t, nil == getErr)
+		Assert(t, 0 == len(val.(map[string]interface{})))
 
 		// delete data "/" should not delete mapping
 		mappings2, merr = storeClient.GetMapping("/", true)
-		assert.NoError(t, merr)
-		assert.Equal(t, mappings, mappings2)
+		Assert(t, nil == merr)
+		Assert(t, reflect.DeepEqual(mappings, mappings2))
 	}
 }
 
@@ -325,10 +340,10 @@ func TestClientSync(t *testing.T) {
 			Prefix:       prefix,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		storeClient.Delete("/", true)
-		//assert.NoError(t, err)
+		//Assert(t, nil==err)
 
 		metastore := store.New()
 		storeClient.Sync(metastore, stopChan)
@@ -346,7 +361,7 @@ func TestClientSync(t *testing.T) {
 		ValidTestData(t, testData, metastore, backend)
 
 		_, val := metastore.Get(deletedKey)
-		assert.Nil(t, val)
+		Assert(t, nil == val)
 
 		storeClient.Delete("/", true)
 	}
@@ -366,7 +381,7 @@ func TestMapping(t *testing.T) {
 			Group:        group,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 		mappings := make(map[string]interface{})
 		for i := 0; i < 10; i++ {
 			ip := fmt.Sprintf("192.168.1.%v", i)
@@ -379,18 +394,18 @@ func TestMapping(t *testing.T) {
 		storeClient.PutMapping("/", mappings, true)
 
 		val, err := storeClient.GetMapping("/", true)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 		m, mok := val.(map[string]interface{})
-		assert.True(t, mok)
-		assert.True(t, m["192.168.1.0"] != nil)
+		Assert(t, mok)
+		Assert(t, m["192.168.1.0"] != nil)
 
 		ip := fmt.Sprintf("192.168.1.%v", 1)
 		nodePath := "/" + ip + "/" + "instance"
 		storeClient.PutMapping(nodePath, "/instances/new1", true)
 		time.Sleep(1000 * time.Millisecond)
 		val, err = storeClient.GetMapping(nodePath, false)
-		assert.NoError(t, err)
-		assert.Equal(t, "/instances/new1", val)
+		Assert(t, nil == err)
+		Assert(t, reflect.DeepEqual("/instances/new1", val))
 		storeClient.Delete("/", true)
 		storeClient.DeleteMapping("/", true)
 	}
@@ -415,7 +430,7 @@ func TestMappingSync(t *testing.T) {
 			Group:        group,
 		}
 		storeClient, err := New(config)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		mappingstore := store.New()
 
@@ -437,9 +452,9 @@ func TestMappingSync(t *testing.T) {
 			ip := fmt.Sprintf("192.168.1.%v", i)
 			_, val := mappingstore.Get(ip)
 			mapVal, mok := val.(map[string]interface{})
-			assert.True(t, mok)
+			Assert(t, mok)
 			path := mapVal["instance"]
-			assert.Equal(t, path, fmt.Sprintf("/instances/%v", i))
+			Assert(t, reflect.DeepEqual(path, fmt.Sprintf("/instances/%v", i)))
 		}
 
 		for i := 5; i < 10; i++ {
@@ -456,16 +471,16 @@ func TestMappingSync(t *testing.T) {
 			ip := fmt.Sprintf("192.168.1.%v", i)
 			_, val := mappingstore.Get(ip)
 			mapVal, mok := val.(map[string]interface{})
-			assert.True(t, mok)
+			Assert(t, mok)
 			path := mapVal["instance"]
-			assert.Equal(t, path, fmt.Sprintf("/instances/%v", i))
+			Assert(t, reflect.DeepEqual(path, fmt.Sprintf("/instances/%v", i)))
 		}
 		ip := fmt.Sprintf("192.168.1.%v", 1)
 		nodePath := ip + "/" + "instance"
 		storeClient.PutMapping(nodePath, "/instances/new1", true)
 		time.Sleep(1000 * time.Millisecond)
 		_, val := mappingstore.Get(nodePath)
-		assert.Equal(t, "/instances/new1", val)
+		Assert(t, reflect.DeepEqual("/instances/new1", val))
 		storeClient.Delete("/", true)
 		storeClient.DeleteMapping("/", true)
 	}
@@ -494,22 +509,22 @@ func TestAccessRule(t *testing.T) {
 		}
 		var rulesGet map[string][]store.AccessRule
 		err := storeClient.PutAccessRule(rules)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		rulesGet, err = storeClient.GetAccessRule()
-		assert.NoError(t, err)
-		assert.Equal(t, rules, rulesGet)
+		Assert(t, nil == err)
+		Assert(t, reflect.DeepEqual(rules, rulesGet))
 
 		time.Sleep(1000 * time.Millisecond)
-		assert.NotNil(t, accessStore.Get("192.168.1.1"))
+		Assert(t, accessStore.Get("192.168.1.1") != nil)
 
 		err = storeClient.DeleteAccessRule([]string{"192.168.1.2"})
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		rulesGet, err = storeClient.GetAccessRule()
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 		_, ok := rulesGet["192.168.1.2"]
-		assert.False(t, ok)
+		Assert(t, ok == false)
 
 		rules2 := map[string][]store.AccessRule{
 			"192.168.1.3": {
@@ -518,15 +533,15 @@ func TestAccessRule(t *testing.T) {
 			},
 		}
 		err = storeClient.PutAccessRule(rules2)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		time.Sleep(1000 * time.Millisecond)
 
-		assert.Nil(t, accessStore.Get("192.168.1.2"))
-		assert.NotNil(t, accessStore.Get("192.168.1.3"))
+		Assert(t, nil == accessStore.Get("192.168.1.2"))
+		Assert(t, accessStore.Get("192.168.1.3") != nil)
 
 		err = storeClient.DeleteAccessRule([]string{"192.168.1.1", "192.168.1.2", "192.168.1.3"})
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 	}
 }
 
@@ -597,6 +612,6 @@ func RandomDelete(testData map[string]string, storeClient StoreClient) string {
 func ValidTestData(t *testing.T, testData map[string]string, metastore store.Store, backend string) {
 	for k, v := range testData {
 		_, storeVal := metastore.Get(k)
-		assert.Equal(t, v, storeVal, "valid data fail for backend %s", backend)
+		Assertf(t, reflect.DeepEqual(v, storeVal), "valid data fail for backend %s", backend)
 	}
 }

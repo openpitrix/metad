@@ -11,7 +11,7 @@ package util
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "openpitrix.io/metad/pkg/assert"
 )
 
 func TestTrimPathPrefix(t *testing.T) {
@@ -106,6 +106,6 @@ func TestGetMapValue(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, GetMapValue(m, "/nodes/1/name"), "node1")
-	assert.Equal(t, GetMapValue(m, "nodes/2"), "")
+	Assert(t, GetMapValue(m, "/nodes/1/name") == "node1")
+	Assert(t, GetMapValue(m, "nodes/2") == "")
 }

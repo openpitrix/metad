@@ -12,15 +12,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-
-	"openpitrix.io/metad/pkg/logger"
 )
-
-func init() {
-	logger.SetLevelByString("debug")
-}
 
 func TestFlatten(t *testing.T) {
 	cases := []struct {
@@ -213,7 +205,9 @@ func TestFlattenJSON(t *testing.T) {
 	for _, tc := range cases {
 		var val interface{}
 		err := json.Unmarshal([]byte(tc.Input), &val)
-		assert.NoError(t, err)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		actual := Flatten(val)
 		if !reflect.DeepEqual(actual, tc.Output) {

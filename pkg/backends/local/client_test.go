@@ -13,8 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/pkg/store"
 )
@@ -29,7 +27,9 @@ func TestClientSyncStop(t *testing.T) {
 	stopChan := make(chan bool)
 
 	storeClient, err := NewLocalClient()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	go func() {
 		time.Sleep(3000 * time.Millisecond)

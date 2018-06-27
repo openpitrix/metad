@@ -12,11 +12,11 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
+	. "openpitrix.io/metad/pkg/assert"
 	"openpitrix.io/metad/pkg/backends"
 	"openpitrix.io/metad/pkg/flatmap"
 	"openpitrix.io/metad/pkg/logger"
@@ -54,33 +54,33 @@ func TestMetarepoData(t *testing.T) {
 	ValidTestData(t, testData, metarepo.data)
 
 	_, val := metarepo.Root(clientIP, "/nodes/0")
-	assert.NotNil(t, val)
+	Assert(t, nil != val)
 
 	mapVal, mok := val.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 
 	_, mok = mapVal["name"]
-	assert.True(t, mok)
+	Assert(t, mok)
 
 	metarepo.DeleteData("/nodes/0")
 
 	time.Sleep(sleepTime)
 	val = metarepo.GetData("/nodes/0")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 
 	subs := []string{"1", "3", "noexistkey"}
 	//test batch delete
 	err := metarepo.DeleteData("nodes", subs...)
 	time.Sleep(sleepTime)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	for _, sub := range subs {
 		val = metarepo.GetData("/nodes/" + sub)
-		assert.Nil(t, val)
+		Assert(t, nil == val)
 	}
 
 	val = metarepo.GetData("/nodes/2")
-	assert.NotNil(t, val)
+	Assert(t, nil != val)
 
 	metarepo.DeleteData("/")
 	metarepo.StopSync()
@@ -106,28 +106,28 @@ func TestMetarepoMapping(t *testing.T) {
 	}
 	// batch update
 	err := metarepo.PutMapping("/", mappings, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 	time.Sleep(sleepTime)
 
 	metarepo.DeleteMapping("/192.168.1.0")
 
 	time.Sleep(sleepTime)
 	val := metarepo.GetMapping("/192.168.1.0")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 
 	subs := []string{"192.168.1.1", "192.168.1.3", "noexistkey"}
 	//test batch delete
 	err = metarepo.DeleteMapping("/", subs...)
 	time.Sleep(sleepTime)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	for _, sub := range subs {
 		val = metarepo.GetMapping("/" + sub)
-		assert.Nil(t, val)
+		Assert(t, nil == val)
 	}
 
 	val = metarepo.GetMapping("/192.168.1.2")
-	assert.NotNil(t, val)
+	Assert(t, nil != val)
 
 	p := 4
 	ip := fmt.Sprintf("192.168.1.%v", p)
@@ -139,7 +139,7 @@ func TestMetarepoMapping(t *testing.T) {
 
 	// test update replace(false)
 	err = metarepo.PutMapping(ip, map[string]interface{}{"node2": "/nodes/2"}, false)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	expectMapping1 := map[string]interface{}{
 		"node":  fmt.Sprintf("/nodes/%v", p),
@@ -148,11 +148,11 @@ func TestMetarepoMapping(t *testing.T) {
 	}
 	time.Sleep(sleepTime)
 	mapping := metarepo.GetMapping(fmt.Sprintf("/%s", ip))
-	assert.Equal(t, expectMapping1, mapping)
+	Assert(t, reflect.DeepEqual(expectMapping1, mapping))
 
 	// test update key
 	err = metarepo.PutMapping(ip+"/node3", "/nodes/3", false)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	expectMapping2 := map[string]interface{}{
 		"node":  fmt.Sprintf("/nodes/%v", p),
@@ -162,20 +162,20 @@ func TestMetarepoMapping(t *testing.T) {
 	}
 	time.Sleep(sleepTime)
 	mapping = metarepo.GetMapping(fmt.Sprintf("/%s", ip))
-	assert.Equal(t, expectMapping2, mapping)
+	Assert(t, reflect.DeepEqual(expectMapping2, mapping))
 
 	// test delete mapping
 	metarepo.DeleteMapping(ip + "/node3")
 	time.Sleep(sleepTime)
 	mapping = metarepo.GetMapping(fmt.Sprintf("/%s", ip))
-	assert.Equal(t, expectMapping1, mapping)
+	Assert(t, reflect.DeepEqual(expectMapping1, mapping))
 
 	// test update replace(true)
 	err = metarepo.PutMapping(ip, expectMapping0, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 	time.Sleep(sleepTime)
 	mapping = metarepo.GetMapping(fmt.Sprintf("/%s", ip))
-	assert.Equal(t, expectMapping0, mapping)
+	Assert(t, reflect.DeepEqual(expectMapping0, mapping))
 
 	metarepo.DeleteData("/")
 	metarepo.DeleteMapping("/")
@@ -206,12 +206,12 @@ func TestMetarepoSelf(t *testing.T) {
 	}
 	// batch update
 	err := metarepo.PutMapping("/", mappings, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 	time.Sleep(sleepTime)
 
 	//test mapping get
 	mappings2 := metarepo.GetMapping("/")
-	assert.Equal(t, mappings, mappings2)
+	Assert(t, reflect.DeepEqual(mappings, mappings2))
 
 	// test GetSelf
 	time.Sleep(sleepTime)
@@ -221,18 +221,18 @@ func TestMetarepoSelf(t *testing.T) {
 	val := metarepo.Self(ip, "/")
 	mapVal, mok := val.(map[string]interface{})
 
-	assert.True(t, mok)
-	assert.NotNil(t, mapVal[key])
+	Assert(t, mok)
+	Assert(t, nil != mapVal[key])
 
 	val = metarepo.Self(ip, "/node/name")
-	assert.Equal(t, fmt.Sprintf("node%v", p), val)
+	Assert(t, fmt.Sprintf("node%v", p) == fmt.Sprint(val))
 
 	//test date delete
 	metarepo.DeleteData(fmt.Sprintf("/nodes/%v/name", p))
 
 	time.Sleep(sleepTime)
 	val = metarepo.Self(ip, "/node/name")
-	assert.Nil(t, val)
+	Assert(t, nil == val)
 
 	metarepo.PutData(fmt.Sprintf("/nodes/%v/name", p), fmt.Sprintf("node%v", p), true)
 
@@ -244,7 +244,7 @@ func TestMetarepoSelf(t *testing.T) {
 			"n2": "/nodes/2",
 		},
 	}, false)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 	val = metarepo.Self(ip, "/dir/n1/name")
@@ -252,7 +252,7 @@ func TestMetarepoSelf(t *testing.T) {
 		logger.Error("except node1, but get %s, ip: %s, data: %s, mapping:%s", val, ip, metarepo.data.Json(), metarepo.mapping.Json())
 		t.Fatal("except node1, but get", val)
 	}
-	assert.Equal(t, "node1", val)
+	Assert(t, reflect.DeepEqual("node1", val))
 
 	metarepo.DeleteData("/")
 	metarepo.DeleteMapping("/")
@@ -283,17 +283,17 @@ func TestMetarepoRoot(t *testing.T) {
 	mapping := make(map[string]interface{})
 	mapping["node"] = "/nodes/0"
 	err := metarepo.PutMapping(ip, mapping, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 	_, val := metarepo.Root(ip, "/")
 	mapVal, mok := val.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 	//println(fmt.Sprintf("%v", mapVal))
-	assert.NotNil(t, mapVal["nodes"])
+	Assert(t, nil != mapVal["nodes"])
 	selfVal := mapVal["self"]
-	assert.NotNil(t, selfVal)
-	assert.True(t, len(mapVal) > 1)
+	Assert(t, nil != selfVal)
+	Assert(t, len(mapVal) > 1)
 
 	metarepo.DeleteData("/")
 	metarepo.DeleteMapping("/")
@@ -335,10 +335,10 @@ func TestWatch(t *testing.T) {
 	}
 
 	m, mok := result.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 	//println(fmt.Sprintf("%v", m))
-	assert.Equal(t, 1, len(m))
-	assert.Equal(t, maxNode*2, len(flatmap.Flatten(m)))
+	Assert(t, 1 == len(m))
+	Assert(t, maxNode*2 == len(flatmap.Flatten(m)))
 
 	//test watch leaf node
 
@@ -356,7 +356,7 @@ func TestWatch(t *testing.T) {
 		t.Fatal("TestWatch wait timeout")
 	}
 
-	assert.Equal(t, "UPDATE|n1", result)
+	Assert(t, reflect.DeepEqual("UPDATE|n1", result))
 	metarepo.StopSync()
 }
 
@@ -373,7 +373,7 @@ func TestWatchSelf(t *testing.T) {
 	err := metarepo.PutMapping(ip, map[string]interface{}{
 		"node": "/nodes/1",
 	}, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 
@@ -396,18 +396,18 @@ func TestWatchSelf(t *testing.T) {
 			"name": name,
 			"ip":   ip,
 		}, false)
-		assert.NoError(t, err)
+		Assert(t, nil == err)
 
 		//println(metarepo.data.Json())
 
 		result := <-ch
 
 		m, mok := result.(map[string]interface{})
-		assert.True(t, mok)
+		Assert(t, mok)
 		//println(fmt.Sprintf("%v", m))
 		fmap := flatmap.Flatten(m)
-		assert.Equal(t, fmt.Sprintf("UPDATE|%s", name), fmap["/node/name"])
-		assert.Equal(t, fmt.Sprintf("UPDATE|%s", ip), fmap["/node/ip"])
+		Assert(t, fmt.Sprintf("UPDATE|%s", name) == fmap["/node/name"])
+		Assert(t, fmt.Sprintf("UPDATE|%s", ip) == fmap["/node/ip"])
 	}
 
 	// test watch self subdir
@@ -418,14 +418,14 @@ func TestWatchSelf(t *testing.T) {
 	time.Sleep(sleepTime)
 
 	err = metarepo.DeleteData("/nodes/1/name")
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	result := <-ch
 
 	m, mok := result.(map[string]interface{})
-	assert.True(t, mok)
+	Assert(t, mok)
 	//println(fmt.Sprintf("%v", m))
-	assert.Equal(t, "DELETE|n1_10", m["name"])
+	Assert(t, "DELETE|n1_10" == fmt.Sprint(m["name"]))
 
 	//logger.Debug("TimerPool stat,total New:%v, Get:%v", metarepo.timerPool.TotalNew.Get(), metarepo.timerPool.TotalGet.Get())
 	metarepo.StopSync()
@@ -441,7 +441,7 @@ func TestWatchCloseChan(t *testing.T) {
 	err := metarepo.PutMapping(ip, map[string]interface{}{
 		"node": "/nodes/1",
 	}, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 
@@ -465,10 +465,10 @@ func TestWatchCloseChan(t *testing.T) {
 
 	cancel1()
 	result := <-ch
-	assert.NotNil(t, result)
+	Assert(t, nil != result)
 	cancel2()
 	result2 := <-ch2
-	assert.NotNil(t, result2)
+	Assert(t, nil != result2)
 	metarepo.StopSync()
 }
 
@@ -487,10 +487,10 @@ func TestSelfWatchNodeNotExist(t *testing.T) {
 		"host": "/hosts/i-local",
 		"cmd":  "/cmd/i-local",
 	}, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	//err = metarepo.PutData("/hosts/i-local", ip , true)
-	//assert.NoError(t, err)
+	//Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -505,10 +505,10 @@ func TestSelfWatchNodeNotExist(t *testing.T) {
 	time.Sleep(sleepTime)
 
 	err = metarepo.PutData("/cmd/i-local", "start", true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 	result := <-ch
 	println(fmt.Sprintf("%s", result))
-	assert.NotNil(t, result)
+	Assert(t, nil != result)
 	//closeChan <- true
 	metarepo.StopSync()
 }
@@ -539,7 +539,7 @@ func TestAccessRule(t *testing.T) {
 	}
 
 	err := metarepo.PutData("/", data, true)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	ip := "192.168.1.1"
 	rules := map[string][]store.AccessRule{
@@ -549,15 +549,15 @@ func TestAccessRule(t *testing.T) {
 	}
 
 	err = metarepo.PutAccessRule(rules)
-	assert.NoError(t, err)
+	Assert(t, nil == err)
 
 	time.Sleep(sleepTime)
 
 	rulesGet := metarepo.GetAccessRule([]string{ip})
-	assert.Equal(t, rules, rulesGet)
+	Assert(t, reflect.DeepEqual(rules, rulesGet))
 
 	_, dataGet := metarepo.Root(ip, "/")
-	assert.Equal(t, data, dataGet)
+	Assert(t, reflect.DeepEqual(data, dataGet))
 
 	metarepo.StopSync()
 }
@@ -603,6 +603,6 @@ func FillTestData(metarepo *MetadataRepo) map[string]string {
 func ValidTestData(t *testing.T, testData map[string]string, metastore store.Store) {
 	for k, v := range testData {
 		_, storeVal := metastore.Get(k)
-		assert.Equal(t, v, storeVal)
+		Assert(t, reflect.DeepEqual(v, storeVal))
 	}
 }
