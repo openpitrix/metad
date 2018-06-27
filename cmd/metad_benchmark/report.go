@@ -8,7 +8,7 @@
 
 // the file is borrowed from github.com/coreos/etcd/tools/benchmark/cmd/report.go
 
-package cmd
+package main
 
 import (
 	"fmt"
