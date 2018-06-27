@@ -17,8 +17,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-
-	"openpitrix.io/metad/pkg/logger"
 )
 
 // Flatten takes a structure and turns into a flat map[string]string.
@@ -26,8 +24,6 @@ import (
 // Within the "thing" parameter, only primitive values are allowed. Structs are
 // not supported. Therefore, it can only be slices, maps, primitives, and
 // any combination of those together.
-//
-//
 //
 // See the tests for examples of what inputs are turned into.
 func Flatten(thing interface{}) map[string]string {
@@ -104,11 +100,9 @@ func flatten(result map[string]string, prefix string, v reflect.Value) {
 			if v.IsNil() {
 				result[prefix] = ""
 			} else {
-				logger.Warn("Unknow type: %v", v.Type())
 				result[prefix] = fmt.Sprintf("%v", v.Interface())
 			}
 		default:
-			logger.Warn("Unknow type: %v", v.Type())
 			result[prefix] = fmt.Sprintf("%v", v.Interface())
 		}
 	}

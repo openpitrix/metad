@@ -11,8 +11,6 @@ package flatmap
 import (
 	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestExpand(t *testing.T) {
@@ -89,7 +87,9 @@ func TestExpand(t *testing.T) {
 
 	for _, tc := range cases {
 		actual := Expand(tc.Map, tc.Prefix)
-		assert.Equal(t, actual, tc.Output)
+		if !reflect.DeepEqual(actual, tc.Output) {
+			t.Fatalf("expected = %v, got = %v", actual, tc.Output)
+		}
 	}
 }
 
