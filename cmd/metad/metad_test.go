@@ -13,13 +13,13 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http/httptest"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
+	. "openpitrix.io/metad/pkg/assert"
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/pkg/util"
 )
@@ -71,21 +71,21 @@ func TestMetad(t *testing.T) {
 	req := httptest.NewRequest("GET", "/metrics", strings.NewReader(dataJson))
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
 	req = httptest.NewRequest("GET", "/health", strings.NewReader(dataJson))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
 	req = httptest.NewRequest("PUT", "/v1/data/", strings.NewReader(dataJson))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -93,13 +93,13 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, data, parse(w))
+	Assert(t, 200 == w.Code)
+	Assert(t, reflect.DeepEqual(data, parse(w)))
 
 	req = httptest.NewRequest("PUT", "/v1/data/nodes", strings.NewReader(`{"6":{"ip":"192.168.1.6","name":"node6"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -107,13 +107,13 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "node6", util.GetMapValue(parse(w), "/6/name"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "node6" == util.GetMapValue(parse(w), "/6/name"))
 
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/6", strings.NewReader(`{"label":{"key1":"value1"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -121,14 +121,14 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "value1", parse(w))
+	Assert(t, 200 == w.Code)
+	Assert(t, "value1" == fmt.Sprintf("%v", parse(w)))
 
 	// test update by put
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/6", strings.NewReader(`{"label":{"key1":"new_value1"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -136,14 +136,14 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "new_value1", parse(w))
+	Assert(t, 200 == w.Code)
+	Assert(t, "new_value1" == fmt.Sprintf("%v", parse(w)))
 
 	// test replace by post
 	req = httptest.NewRequest("POST", "/v1/data/nodes/6/label", strings.NewReader(`{"key3":"value3"}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -151,21 +151,21 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 	result := parse(w)
 	v := parseVersion(w)
-	assert.True(t, v > 0)
+	Assert(t, v > 0)
 	m := result.(map[string]interface{})
-	assert.Equal(t, "value3", m["key3"])
+	Assert(t, reflect.DeepEqual("value3", m["key3"]))
 	//key1 has been replaced.
-	assert.Equal(t, nil, m["key1"])
+	Assert(t, nil == m["key1"])
 
 	//test mapping
 
 	req = httptest.NewRequest("POST", "/v1/mapping", strings.NewReader(`{"192.168.1.1":{"node":"/nodes/1"}, "192.168.1.2":{"node":"/nodes/2"}, "192.168.1.3":{"node":"/nodes/3"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -176,8 +176,8 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "node1", util.GetMapValue(parse(w), "/node/name"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "node1" == util.GetMapValue(parse(w), "/node/name"))
 
 	//test self request sub node
 	req = httptest.NewRequest("GET", "/self/node/name", nil)
@@ -185,14 +185,14 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "node1", parse(w))
+	Assert(t, 200 == w.Code)
+	Assert(t, reflect.DeepEqual("node1", parse(w)))
 
 	// delete node1
 	req = httptest.NewRequest("DELETE", "/v1/data/nodes/1", nil)
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -202,8 +202,7 @@ func TestMetad(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 404, w.Code)
-
+	Assert(t, 404 == w.Code)
 }
 
 func TestMetadWatch(t *testing.T) {
@@ -229,7 +228,7 @@ func TestMetadWatch(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/v1/data/", strings.NewReader(dataJson))
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	ruleJson := `
 	{"192.168.1.1":[{"path":"/","mode":1}]
@@ -238,7 +237,7 @@ func TestMetadWatch(t *testing.T) {
 	req = httptest.NewRequest("PUT", "/v1/rule/", strings.NewReader(ruleJson))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 	versions := make(chan int, 1)
@@ -248,7 +247,7 @@ func TestMetadWatch(t *testing.T) {
 		req.RemoteAddr = remoteAddr
 		w := httptest.NewRecorder()
 		metad.router.ServeHTTP(w, req)
-		assert.Equal(t, 200, w.Code)
+		Assert(t, 200 == w.Code)
 		version := parseVersion(w)
 		versions <- version
 	}()
@@ -258,16 +257,16 @@ func TestMetadWatch(t *testing.T) {
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/1/ip", strings.NewReader(`"192.168.2.1"`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	v := <-versions
-	assert.True(t, v >= 0)
+	Assert(t, v >= 0)
 
 	// change again
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/1/ip", strings.NewReader(`"192.168.3.1"`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	//wait with prev_version should return immediately
 	req = httptest.NewRequest("GET", fmt.Sprintf("/nodes/1/ip?wait=true&prev_version=%d", v), nil)
@@ -275,10 +274,10 @@ func TestMetadWatch(t *testing.T) {
 	req.RemoteAddr = remoteAddr
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 	v2 := parseVersion(w)
-	assert.True(t, v2 > v)
-	assert.Equal(t, "192.168.3.1", parse(w))
+	Assert(t, v2 > v)
+	Assert(t, "192.168.3.1" == fmt.Sprintf("%v", parse(w)))
 }
 
 func TestMetadWatchSelf(t *testing.T) {
@@ -302,12 +301,12 @@ func TestMetadWatchSelf(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/v1/data/", strings.NewReader(dataJson))
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	req = httptest.NewRequest("POST", "/v1/mapping", strings.NewReader(`{"192.168.1.1":{"node":"/nodes/1"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -317,8 +316,8 @@ func TestMetadWatchSelf(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "node1", util.GetMapValue(parse(w), "/node/name"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "node1" == util.GetMapValue(parse(w), "/node/name"))
 
 	versions := make(chan int, 1)
 	go func() {
@@ -327,8 +326,8 @@ func TestMetadWatchSelf(t *testing.T) {
 		req.RemoteAddr = "192.168.1.1:1234"
 		w := httptest.NewRecorder()
 		metad.router.ServeHTTP(w, req)
-		assert.Equal(t, 200, w.Code)
-		assert.Equal(t, "192.168.2.1", util.GetMapValue(parse(w), "/node/ip"))
+		Assert(t, 200 == w.Code)
+		Assert(t, "192.168.2.1" == util.GetMapValue(parse(w), "/node/ip"))
 		version := parseVersion(w)
 		versions <- version
 	}()
@@ -338,16 +337,16 @@ func TestMetadWatchSelf(t *testing.T) {
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/1/ip", strings.NewReader(`"192.168.2.1"`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	v := <-versions
-	assert.True(t, v >= 0)
+	Assert(t, v >= 0)
 
 	// change again
 	req = httptest.NewRequest("PUT", "/v1/data/nodes/1/ip", strings.NewReader(`"192.168.3.1"`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -357,10 +356,10 @@ func TestMetadWatchSelf(t *testing.T) {
 	req.RemoteAddr = "192.168.1.1:1234"
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 	v2 := parseVersion(w)
-	assert.True(t, v2 > v)
-	assert.Equal(t, "192.168.3.1", util.GetMapValue(parse(w), "/node/ip"))
+	Assert(t, v2 > v)
+	Assert(t, "192.168.3.1" == util.GetMapValue(parse(w), "/node/ip"))
 }
 
 func TestMetadMappingDelete(t *testing.T) {
@@ -384,12 +383,12 @@ func TestMetadMappingDelete(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/v1/data/", strings.NewReader(dataJson))
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 	ip := "192.168.1.1"
 	req = httptest.NewRequest("POST", "/v1/mapping", strings.NewReader(`{"192.168.1.1":{"node":"/nodes/1"}}`))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -398,7 +397,7 @@ func TestMetadMappingDelete(t *testing.T) {
 	req = httptest.NewRequest("DELETE", "/v1/mapping?subs=192.168.1.2,,", nil)
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -407,7 +406,7 @@ func TestMetadMappingDelete(t *testing.T) {
 	req = httptest.NewRequest("DELETE", "/v1/mapping?subs=,,", nil)
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -416,7 +415,7 @@ func TestMetadMappingDelete(t *testing.T) {
 	req = httptest.NewRequest("DELETE", "/v1/mapping?subs=192.168.1.1", nil)
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -453,14 +452,14 @@ func TestMetadAccessRule(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/v1/data/", strings.NewReader(dataJson))
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 	mappingJson := `
 	{"192.168.1.1":{"cluster":"/clusters/cl-1", "links":{"c2":"/clusters/cl-2"}},
 	"192.168.1.2":{"cluster":"/clusters/cl-2"}}`
 	req = httptest.NewRequest("POST", "/v1/mapping", strings.NewReader(mappingJson))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	ruleJson := `
 	{"192.168.1.1":[{"path":"/","mode":0}, {"path":"/clusters/*/env","mode":0},{"path":"/clusters/cl-1","mode":1}, {"path":"/clusters/cl-2","mode":1}, {"path":"/clusters/cl-2/env/secret","mode":0}],
@@ -470,7 +469,7 @@ func TestMetadAccessRule(t *testing.T) {
 	req = httptest.NewRequest("POST", "/v1/rule", strings.NewReader(ruleJson))
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	time.Sleep(sleepTime)
 
@@ -478,33 +477,33 @@ func TestMetadAccessRule(t *testing.T) {
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "/", util.GetMapValue(parse(w), "/192.168.1.1/0/path"))
-	assert.Equal(t, "1", util.GetMapValue(parse(w), "/192.168.1.1/2/mode"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "/" == util.GetMapValue(parse(w), "/192.168.1.1/0/path"))
+	Assert(t, "1" == util.GetMapValue(parse(w), "/192.168.1.1/2/mode"))
 
 	req = httptest.NewRequest("GET", "/", nil)
 	req.RemoteAddr = "192.168.1.1:1234"
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "cl-1", util.GetMapValue(parse(w), "/self/cluster/name"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "cl-1" == util.GetMapValue(parse(w), "/self/cluster/name"))
 	// node1 can access cl-2
-	assert.Equal(t, "cl-2", util.GetMapValue(parse(w), "/clusters/cl-2/name"))
-	assert.Equal(t, "user2", util.GetMapValue(parse(w), "/self/links/c2/env/username"))
+	Assert(t, "cl-2" == util.GetMapValue(parse(w), "/clusters/cl-2/name"))
+	Assert(t, "user2" == util.GetMapValue(parse(w), "/self/links/c2/env/username"))
 	//can not access cl-2 env/secret
-	assert.Equal(t, "", util.GetMapValue(parse(w), "/self/links/c2/env/secret"))
+	Assert(t, "" == util.GetMapValue(parse(w), "/self/links/c2/env/secret"))
 
 	req = httptest.NewRequest("GET", "/", nil)
 	req.RemoteAddr = "192.168.1.2:1234"
 	req.Header.Set("accept", "application/json")
 	w = httptest.NewRecorder()
 	metad.router.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, "cl-2", util.GetMapValue(parse(w), "/self/cluster/name"))
-	assert.Equal(t, "1234567", util.GetMapValue(parse(w), "/self/cluster/env/secret"))
+	Assert(t, 200 == w.Code)
+	Assert(t, "cl-2" == util.GetMapValue(parse(w), "/self/cluster/name"))
+	Assert(t, "1234567" == util.GetMapValue(parse(w), "/self/cluster/env/secret"))
 	// node2 can not access cl-1
-	assert.Equal(t, "", util.GetMapValue(parse(w), "/clusters/cl-1/name"))
+	Assert(t, "" == util.GetMapValue(parse(w), "/clusters/cl-1/name"))
 }
 
 func NewTestMetad() *Metad {
@@ -527,7 +526,7 @@ func getAndCheckMapping(metad *Metad, t *testing.T, ip string, exist bool) {
 	req.Header.Set("Accept", "application/json")
 	w := httptest.NewRecorder()
 	metad.manageRouter.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
+	Assert(t, 200 == w.Code)
 
 	mappingJson := w.Body.String()
 	mapping := make(map[string]interface{})
@@ -536,7 +535,7 @@ func getAndCheckMapping(metad *Metad, t *testing.T, ip string, exist bool) {
 		t.Fatal("Unmarshal err:", mappingJson, err)
 	}
 	_, ok := mapping[ip]
-	assert.True(t, ok == exist)
+	Assert(t, ok == exist)
 }
 
 func parseVersion(w *httptest.ResponseRecorder) int {

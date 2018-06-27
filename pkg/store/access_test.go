@@ -10,9 +10,10 @@ package store
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "openpitrix.io/metad/pkg/assert"
 )
 
 func TestAccessStore(t *testing.T) {
@@ -26,7 +27,7 @@ func TestAccessStore(t *testing.T) {
 	accessStore.Put(ip, rules)
 
 	tree := accessStore.Get(ip)
-	assert.NotNil(t, tree)
+	Assert(t, tree != nil)
 
 	ip2 := "192.168.1.2"
 	accessStore.Puts(map[string][]AccessRule{
@@ -34,15 +35,15 @@ func TestAccessStore(t *testing.T) {
 	})
 	rulesGet := accessStore.GetAccessRule([]string{ip})
 	rules1 := rulesGet[ip]
-	assert.Equal(t, rules, rules1)
+	Assert(t, reflect.DeepEqual(rules, rules1))
 
 	rulesGet2 := accessStore.GetAccessRule(nil)
-	assert.Equal(t, rules, rulesGet2[ip])
-	assert.Equal(t, rules, rulesGet2[ip2])
+	Assert(t, reflect.DeepEqual(rules, rulesGet2[ip]))
+	Assert(t, reflect.DeepEqual(rules, rulesGet2[ip2]))
 
 	accessStore.Delete(ip)
 	rulesGet3 := accessStore.GetAccessRule([]string{})
-	assert.Equal(t, 1, len(rulesGet3))
+	Assert(t, 1 == len(rulesGet3))
 }
 
 func TestAccessTree(t *testing.T) {
@@ -56,12 +57,12 @@ func TestAccessTree(t *testing.T) {
 	jsonStr := tree.Json()
 	jsonMap := map[string]interface{}{}
 	err := json.Unmarshal([]byte(jsonStr), &jsonMap)
-	assert.NoError(t, err)
+	Assert(t, err == nil)
 	root := tree.GetRoot()
-	assert.Equal(t, AccessModeForbidden, root.Mode)
-	assert.Equal(t, AccessModeRead, root.GetChild("clusters", true).Mode)
-	assert.Equal(t, AccessModeForbidden, root.GetChild("clusters", true).
+	Assert(t, AccessModeForbidden == root.Mode)
+	Assert(t, AccessModeRead == root.GetChild("clusters", true).Mode)
+	Assert(t, AccessModeForbidden == root.GetChild("clusters", true).
 		GetChild("cl-2", false).GetChild("env", true).Mode)
-	assert.Equal(t, AccessModeRead, root.GetChild("clusters", true).
+	Assert(t, AccessModeRead == root.GetChild("clusters", true).
 		GetChild("cl-1", false).GetChild("env", true).GetChild("secret", true).Mode)
 }

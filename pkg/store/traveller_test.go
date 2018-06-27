@@ -10,15 +10,16 @@ package store
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	. "openpitrix.io/metad/pkg/assert"
 )
 
 func TestTravellerStack(t *testing.T) {
 	stack := &travellerStack{}
 
-	assert.Nil(t, stack.Pop())
+	Assert(t, stack.Pop() == nil)
 
 	one := &stackElement{node: nil, mode: AccessModeNil}
 	two := &stackElement{node: nil, mode: AccessModeForbidden}
@@ -27,11 +28,11 @@ func TestTravellerStack(t *testing.T) {
 	stack.Push(two)
 	stack.Push(three)
 
-	assert.Equal(t, three, stack.Pop())
-	assert.Equal(t, two, stack.Pop())
-	assert.Equal(t, one, stack.Pop())
+	Assert(t, reflect.DeepEqual(three, stack.Pop()))
+	Assert(t, reflect.DeepEqual(two, stack.Pop()))
+	Assert(t, reflect.DeepEqual(one, stack.Pop()))
 
-	assert.Nil(t, stack.Pop())
+	Assert(t, stack.Pop() == nil)
 }
 
 func TestTravellerEnter(t *testing.T) {
@@ -65,19 +66,19 @@ func TestTravellerEnter(t *testing.T) {
 
 	traveller := s.Traveller(NewAccessTree(accessRules))
 	defer traveller.Close()
-	assert.True(t, traveller.Enter("/clusters"))
-	assert.True(t, traveller.Enter("/cl-1/env"))
-	assert.True(t, traveller.Enter("name"))
-	assert.Equal(t, "app1", traveller.GetValue())
+	Assert(t, traveller.Enter("/clusters"))
+	Assert(t, traveller.Enter("/cl-1/env"))
+	Assert(t, traveller.Enter("name"))
+	Assert(t, reflect.DeepEqual("app1", traveller.GetValue()))
 
 	traveller.BackToRoot()
-	assert.True(t, traveller.Enter("/clusters/cl-1/env/secret"))
+	Assert(t, traveller.Enter("/clusters/cl-1/env/secret"))
 	traveller.BackStep(2)
-	assert.True(t, traveller.Enter("public_key"))
-	assert.Equal(t, "public_key_val", traveller.GetValue())
+	Assert(t, traveller.Enter("public_key"))
+	Assert(t, reflect.DeepEqual("public_key_val", traveller.GetValue()))
 
 	traveller.BackToRoot()
-	assert.True(t, traveller.Enter("/"))
+	Assert(t, traveller.Enter("/"))
 
 }
 
@@ -127,11 +128,11 @@ func TestTraveller(t *testing.T) {
 	nodeTraveller := traveller.(*nodeTraveller)
 	fmt.Println(nodeTraveller.access.Json())
 
-	assert.True(t, traveller.Enter("/clusters/cl-1/env"))
+	Assert(t, traveller.Enter("/clusters/cl-1/env"))
 	traveller.BackToRoot()
 
-	assert.False(t, traveller.Enter("/clusters/cl-2/env"))
-	assert.True(t, traveller.Enter("/clusters/cl-2/public_key"))
+	Assert(t, false == traveller.Enter("/clusters/cl-2/env"))
+	Assert(t, traveller.Enter("/clusters/cl-2/public_key"))
 
 	traveller.BackToRoot()
 
@@ -141,11 +142,11 @@ func TestTraveller(t *testing.T) {
 	//j,_ := json.MarshalIndent(v, "", "  ")
 	//fmt.Printf("%s", string(j))
 	mVal, ok := v.(map[string]interface{})
-	assert.True(t, ok)
+	Assert(t, ok)
 	cl1 := mVal["cl-1"].(map[string]interface{})
 	cl2 := mVal["cl-2"].(map[string]interface{})
 
 	envM := cl1["env"].(map[string]interface{})
-	assert.Equal(t, 2, len(envM))
-	assert.Nil(t, cl2["env"])
+	Assert(t, 2 == len(envM))
+	Assert(t, cl2["env"] == nil)
 }

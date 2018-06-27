@@ -15,8 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"openpitrix.io/metad/pkg/logger"
 	"openpitrix.io/metad/pkg/store"
 )
@@ -34,7 +32,10 @@ func TestClientSyncStop(t *testing.T) {
 	logger.Info("prefix is %s", prefix)
 	nodes := []string{"http://127.0.0.1:2379"}
 	storeClient, err := NewEtcdClient("default", prefix, nodes, "", "", "", false, "", "")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	go func() {
 		time.Sleep(3 * time.Second)
 		stopChan <- true
@@ -64,7 +65,10 @@ func TestClientSyncStopWhenInitError(t *testing.T) {
 	logger.Info("prefix is %s", prefix)
 	nodes := []string{"http://127.0.0.1:2379"}
 	storeClient, err := NewEtcdClient("default", prefix, nodes, "", "", "", false, "", "")
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	go func() {
 		time.Sleep(3 * time.Second)
 		stopChan <- true

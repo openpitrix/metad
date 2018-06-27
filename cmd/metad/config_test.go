@@ -11,10 +11,12 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
+
+	. "openpitrix.io/metad/pkg/assert"
 )
 
 func TestConfigFile(t *testing.T) {
@@ -37,19 +39,19 @@ func TestConfigFile(t *testing.T) {
 	}
 
 	data, err := yaml.Marshal(config)
-	assert.NoError(t, err)
+	Assert(t, err == nil, err)
 	configFile, fileErr := ioutil.TempFile("/tmp", "metad")
 
 	fmt.Printf("configFile: %v \n", configFile.Name())
 
-	assert.Nil(t, fileErr)
+	Assert(t, fileErr == nil, fileErr)
 	c, ioErr := configFile.Write(data)
-	assert.Nil(t, ioErr)
-	assert.Equal(t, len(data), c)
+	Assert(t, ioErr == nil, ioErr)
+	Assert(t, len(data) == c)
 
 	config2 := Config{}
 	loadErr := loadConfigFile(configFile.Name(), &config2)
-	assert.Nil(t, loadErr)
+	Assert(t, loadErr == nil, loadErr)
 
-	assert.Equal(t, config, config2)
+	Assert(t, reflect.DeepEqual(config, config2))
 }
