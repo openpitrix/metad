@@ -1,3 +1,13 @@
+*.o
+*.a
+*.so
+
+*.exe
+*.lib
+*.dll
+
+metad
+
 .idea
 bin
 /infra-proxy1.etcd/
