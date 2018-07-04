@@ -4,6 +4,8 @@
 
 # go get -u github.com/kardianos/govendor
 
+VGO_PROXY:=http_proxy=socks5://127.0.0.1:2080 https_proxy=socks5://127.0.0.1:2080
+
 default:
 
 init-vendor:
@@ -13,6 +15,9 @@ init-vendor:
 update-vendor:
 	govendor update +external
 	govendor list
+
+vgo_build:
+	$(VGO_PROXY) vgo build
 
 vgo:
 	vgo fmt ./...
@@ -33,6 +38,7 @@ graph:
 
 tools:
 	go get golang.org/x/vgo
+	go get github.com/kardianos/govendor
 	go get github.com/kisielk/godepgraph
 
 clean:
