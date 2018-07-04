@@ -2,7 +2,17 @@
 # Use of this source code is governed by a Apache license
 # that can be found in the LICENSE file.
 
+# go get -u github.com/kardianos/govendor
+
 default:
+
+init-vendor:
+	govendor init
+	govendor add +external
+
+update-vendor:
+	govendor update +external
+	govendor list
 
 vgo:
 	vgo fmt ./...
