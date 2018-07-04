@@ -6,7 +6,7 @@
 // Use of this source code is governed by a Apache license
 // that can be found in the LICENSE file.
 
-package main
+package metad
 
 const (
 	VERSION     = "1.0.dev"

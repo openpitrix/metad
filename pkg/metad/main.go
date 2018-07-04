@@ -6,7 +6,7 @@
 // Use of this source code is governed by a Apache license
 // that can be found in the LICENSE file.
 
-package main
+package metad
 
 import (
 	"flag"
@@ -19,7 +19,7 @@ import (
 	"openpitrix.io/metad/pkg/logger"
 )
 
-func main() {
+func Main() {
 	defer func() {
 		if r := recover(); r != nil {
 			// metad can run as a service, and enable the auto restart flag.
