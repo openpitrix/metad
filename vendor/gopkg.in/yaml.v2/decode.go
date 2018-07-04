@@ -26,7 +26,6 @@ type node struct {
 	implicit     bool
 	children     []*node
 	anchors      map[string]*node
-	aliasCache   map[string]reflect.Value
 }
 
 // ----------------------------------------------------------------------------
@@ -121,7 +120,6 @@ func (p *parser) parse() *node {
 	default:
 		panic("attempted to parse unknown event: " + strconv.Itoa(int(p.event.typ)))
 	}
-	panic("unreachable")
 }
 
 func (p *parser) node(kind int) *node {
@@ -135,7 +133,6 @@ func (p *parser) node(kind int) *node {
 func (p *parser) document() *node {
 	n := p.node(documentNode)
 	n.anchors = make(map[string]*node)
-	n.aliasCache = make(map[string]reflect.Value)
 	p.doc = n
 	p.skip()
 	n.children = append(n.children, p.parse())
@@ -193,6 +190,7 @@ type decoder struct {
 	aliases map[string]bool
 	mapType reflect.Type
 	terrors []string
+	strict  bool
 }
 
 var (
@@ -202,8 +200,8 @@ var (
 	ifaceType      = defaultMapType.Elem()
 )
 
-func newDecoder() *decoder {
-	d := &decoder{mapType: defaultMapType}
+func newDecoder(strict bool) *decoder {
+	d := &decoder{mapType: defaultMapType, strict: strict}
 	d.aliases = make(map[string]bool)
 	return d
 }
@@ -253,7 +251,7 @@ func (d *decoder) callUnmarshaler(n *node, u Unmarshaler) (good bool) {
 //
 // If n holds a null value, prepare returns before doing anything.
 func (d *decoder) prepare(n *node, out reflect.Value) (newout reflect.Value, unmarshaled, good bool) {
-	if n.tag == yaml_NULL_TAG || n.kind == scalarNode && n.tag == "" && (n.value == "null" || n.value == "") {
+	if n.tag == yaml_NULL_TAG || n.kind == scalarNode && n.tag == "" && (n.value == "null" || n.value == "" && n.implicit) {
 		return out, false, false
 	}
 	again := true
@@ -310,12 +308,6 @@ func (d *decoder) document(n *node, out reflect.Value) (good bool) {
 }
 
 func (d *decoder) alias(n *node, out reflect.Value) (good bool) {
-	if ref, ok := d.doc.aliasCache[n.value]; ok {
-		out.Set(ref)
-		delete(d.aliases, n.value)
-		return true
-	}
-
 	an, ok := d.doc.anchors[n.value]
 	if !ok {
 		failf("unknown anchor '%s' referenced", n.value)
@@ -326,9 +318,6 @@ func (d *decoder) alias(n *node, out reflect.Value) (good bool) {
 	d.aliases[n.value] = true
 	good = d.unmarshal(an, out)
 	delete(d.aliases, n.value)
-
-	d.doc.aliasCache[n.value] = reflect.ValueOf(convertKeysToStrings(out.Interface()))
-
 	return good
 }
 
@@ -651,6 +640,8 @@ func (d *decoder) mappingStruct(n *node, out reflect.Value) (good bool) {
 			value := reflect.New(elemType).Elem()
 			d.unmarshal(n.children[i+1], value)
 			inlineMap.SetMapIndex(name, value)
+		} else if d.strict {
+			d.terrors = append(d.terrors, fmt.Sprintf("line %d: field %s not found in struct %s", n.line+1, name.String(), out.Type()))
 		}
 	}
 	return true
