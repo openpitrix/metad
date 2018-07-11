@@ -24,14 +24,19 @@ type TimerPool struct {
 }
 
 func NewTimerPool(timeout time.Duration) *TimerPool {
-	pool := sync.Pool{}
 	var totalNew atomic_AtomicInteger
-	pool.New = func() interface{} {
+	p := &TimerPool{
+		timeout:  timeout,
+		TotalNew: totalNew,
+		TotalGet: 0,
+	}
+	p.pool.New = func() interface{} {
 		t := time.NewTimer(timeout)
 		atomic.AddInt32((*int32)(&totalNew), 1)
 		return t
 	}
-	return &TimerPool{timeout: timeout, pool: pool, TotalNew: totalNew, TotalGet: 0}
+
+	return p
 }
 
 func (tp *TimerPool) AcquireTimer() *time.Timer {
