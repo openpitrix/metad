@@ -105,10 +105,35 @@
 			"revisionTime": "2018-06-22T17:40:09Z"
 		},
 		{
+			"checksumSHA1": "mLmwamaqyrVUNOmTAGaSpnO1YJQ=",
+			"path": "github.com/google/gops/agent",
+			"revision": "62b4d222669dc214b631ef9750d7eeaf197ef7a5",
+			"revisionTime": "2018-04-30T05:11:38Z"
+		},
+		{
+			"checksumSHA1": "4/oP9EPM60f4djEKTtRqMJPaeOo=",
+			"path": "github.com/google/gops/internal",
+			"revision": "62b4d222669dc214b631ef9750d7eeaf197ef7a5",
+			"revisionTime": "2018-04-30T05:11:38Z"
+		},
+		{
+			"checksumSHA1": "jKzg09NDPfnmGeZhp+YSVaq4cb0=",
+			"path": "github.com/google/gops/signal",
+			"revision": "62b4d222669dc214b631ef9750d7eeaf197ef7a5",
+			"revisionTime": "2018-04-30T05:11:38Z"
+		},
+		{
 			"checksumSHA1": "Aw8z8w/d+EFt8XCUYPjzSe0bPrU=",
 			"path": "github.com/gorilla/mux",
 			"revision": "cb4698366aa625048f3b815af6a0dea8aef9280a",
 			"revisionTime": "2018-06-05T21:15:56Z"
+		},
+		{
+			"checksumSHA1": "gEjGS03N1eysvpQ+FCHTxPcbxXc=",
+			"origin": "github.com/google/gops/vendor/github.com/kardianos/osext",
+			"path": "github.com/kardianos/osext",
+			"revision": "62b4d222669dc214b631ef9750d7eeaf197ef7a5",
+			"revisionTime": "2018-04-30T05:11:38Z"
 		},
 		{
 			"checksumSHA1": "XEV3BI3nHA/rNa/tIgB7fVCrDww=",
