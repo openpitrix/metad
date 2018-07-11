@@ -11,7 +11,6 @@ package store
 import (
 	"fmt"
 	"net/http"
-	_ "net/http/pprof"
 	"reflect"
 	"sync"
 	"testing"
