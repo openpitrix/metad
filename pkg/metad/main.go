@@ -11,46 +11,34 @@ package metad
 import (
 	"flag"
 	"fmt"
-	"net/http"
-	_ "net/http/pprof"
+	"log"
 	"os"
-	"runtime"
+
+	"github.com/google/gops/agent"
 
 	"openpitrix.io/metad/pkg/logger"
+	"openpitrix.io/metad/pkg/version"
 )
 
 func Main() {
-	defer func() {
-		if r := recover(); r != nil {
-			// metad can run as a service, and enable the auto restart flag.
-			// see docs/service.md for more information.
-			logger.Fatal("Main Recover: %v, try restart.", r)
-		}
-	}()
-
 	flag.Parse()
 
 	if printVersion {
-		fmt.Printf("Metad Version: %s\n", VERSION)
-		fmt.Printf("Git Version: %s\n", GIT_VERSION)
-		fmt.Printf("Go Version: %s\n", runtime.Version())
-		fmt.Printf("Go OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+		fmt.Println(version.GetVersionString())
 		os.Exit(0)
 	}
 
-	if pprof {
-		fmt.Printf("Start pprof, 127.0.0.1:6060\n")
-		go logger.Fatal("%v", http.ListenAndServe("127.0.0.1:6060", nil))
+	if err := agent.Listen(agent.Options{}); err != nil {
+		log.Fatal(err)
 	}
 
 	var config *Config
 	var err error
 	if config, err = initConfig(); err != nil {
-		logger.Fatal(err.Error())
-		os.Exit(-1)
+		logger.Fatal("%v", err)
 	}
 
-	logger.Info("Starting metad %s", VERSION)
+	logger.Info("Starting metad %s", version.ShortVersion)
 	metad, err = New(config)
 	if err != nil {
 		logger.Fatal(err.Error())

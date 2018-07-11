@@ -12,7 +12,7 @@ only_self: false
 # The metad's group name, same group share same mapping config from backend.
 group: default
 # Address to listen to (TCP)
-listen: :80
+listen: :9180
 # Address to listen to for manage requests (TCP)
 listen_manage: 127.0.0.1:9611
 # Use Basic Auth to authenticate (only used with -backend=etcd)

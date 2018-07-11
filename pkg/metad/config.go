@@ -38,7 +38,6 @@ var (
 	metad *Metad
 
 	printVersion bool
-	pprof        bool
 	logLevel     string
 	enableXff    bool
 	prefix       string
@@ -78,7 +77,6 @@ type Config struct {
 
 func init() {
 	flag.BoolVar(&printVersion, "version", false, "Show metad version")
-	flag.BoolVar(&pprof, "pprof", false, "Enable http pprof, port is 6060")
 	flag.StringVar(&configFile, "config", "", "The configuration file path")
 	flag.StringVar(&backend, "backend", "local", "The metad backend type")
 	flag.StringVar(&logLevel, "log_level", "info", "Log level for metad print out: debug|info|warning")
@@ -86,7 +84,7 @@ func init() {
 	flag.BoolVar(&enableXff, "xff", false, "X-Forwarded-For header support")
 	flag.StringVar(&prefix, "prefix", "", "Backend key path prefix")
 	flag.StringVar(&group, "group", "default", "The metad's group name, same group share same mapping config from backend")
-	flag.StringVar(&listen, "listen", ":80", "Address to listen to (TCP)")
+	flag.StringVar(&listen, "listen", ":9180", "Address to listen to (TCP)")
 	flag.StringVar(&listenManage, "listen_manage", "127.0.0.1:9611", "Address to listen to for manage requests (TCP)")
 	flag.BoolVar(&basicAuth, "basic_auth", false, "Use Basic Auth to authenticate (only used with -backend=etcd)")
 	flag.StringVar(&clientCaKeys, "client_ca_keys", "", "The client ca keys")
@@ -105,7 +103,7 @@ func initConfig() (*Config, error) {
 		Prefix:       "",
 		Group:        "default",
 		LogLevel:     "info",
-		Listen:       ":80",
+		Listen:       ":9180",
 		ListenManage: "127.0.0.1:9611",
 	}
 	if configFile != "" {
