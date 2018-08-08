@@ -7,6 +7,29 @@
 VGO_PROXY:=http_proxy=socks5://127.0.0.1:2080 https_proxy=socks5://127.0.0.1:2080
 
 default:
+	./metad \
+		-backend=etcdv3 \
+		-nodes=http://127.0.0.1:2379 \
+		-log_level=debug \
+		-listen=:8080 \
+		-xff
+
+init-etcd:
+	ETCDCTL_API=3 etcdctl get --prefix ""
+
+	ETCDCTL_API=3 etcdctl put abc abc-value
+	ETCDCTL_API=3 etcdctl put abc/aaa abc/aaa-value
+
+init-metad:
+	curl -X PUT -H "Content-Type: application/json" http://127.0.0.1:9611/v1/data \
+		--data-binary "@./testdata/simple.json"
+	curl -H "Content-Type: application/json" -X PUT http://127.0.0.1:9611/v1/mapping \
+		--data-binary "@./testdata/mapping.json"
+
+
+metad-get:
+	curl -H "Accept: application/json" http://127.0.0.1:9611/v1/mapping
+	curl -H "Accept: application/json" -H "X-Forwarded-For: 192.168.1.1" http://127.0.0.1:8080/self/node
 
 init-vendor:
 	govendor init
