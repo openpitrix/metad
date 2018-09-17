@@ -64,4 +64,18 @@ tools:
 	go get github.com/kardianos/govendor
 	go get github.com/kisielk/godepgraph
 
+build-image-%: ## build docker image
+	@if [ "$*" = "latest" ];then \
+	docker build -t openpitrix/metad:latest .; \
+	elif [ "`echo "$*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+"`" != "" ];then \
+	docker build -t openpitrix/metad:$* .; \
+	fi
+
+push-image-%: ## push docker image
+	@if [ "$*" = "latest" ];then \
+	docker push openpitrix/metad:latest; \
+	elif [ "`echo "$*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+"`" != "" ];then \
+	docker push openpitrix/metad:$*; \
+	fi
+
 clean:
