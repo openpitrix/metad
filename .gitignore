@@ -6,6 +6,9 @@
 *.lib
 *.dll
 
+.idea
+*.iml
+
 # for vgo
 go.sum
 

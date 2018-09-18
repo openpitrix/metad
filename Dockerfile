@@ -2,13 +2,20 @@
 # Use of this source code is governed by a Apache license
 # that can be found in the LICENSE file.
 
-FROM alpine:3.4
+FROM golang:1.10.1-alpine3.7 as builder
 
-LABEL MAINTAINER="jolestar <jolestar@gmail.com>"
+RUN apk add --no-cache upx git
 
-COPY bin/alpine/metad /usr/bin/
+WORKDIR /go/src/openpitrix.io/metad/
+COPY . .
 
-EXPOSE 9112
-EXPOSE 80
+RUN mkdir -p /metad_bin
+RUN go generate openpitrix.io/metad/pkg/version && \
+CGO_ENABLED=0 GOOS=linux GOBIN=/metad_bin go install -ldflags '-w -s' -tags netgo openpitrix.io/metad
 
-ENTRYPOINT ["/usr/bin/metad"]
+RUN find /metad_bin -type f -exec upx {} \;
+
+FROM alpine:3.7
+COPY --from=builder /metad_bin/* /usr/local/bin/
+
+CMD ["sh"]
