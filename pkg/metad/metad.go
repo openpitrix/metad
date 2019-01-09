@@ -28,7 +28,7 @@ import (
 	"github.com/golang/gddo/httputil"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
 	"openpitrix.io/metad/pkg/backends"
 	"openpitrix.io/metad/pkg/flatmap"
@@ -106,7 +106,13 @@ func (m *Metad) Init() {
 	m.initManageRouter()
 }
 
+func (m *Metad) Quit(w http.ResponseWriter, r *http.Request) {
+	os.Exit(0)
+}
+
 func (m *Metad) initRouter() {
+	m.router.HandleFunc("/quit", m.Quit).Methods("POST")
+
 	m.router.HandleFunc("/favicon.ico", http.NotFound)
 
 	m.router.HandleFunc("/self", m.handleWrapper(m.selfHandler)).
